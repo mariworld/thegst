@@ -5,6 +5,7 @@ import FlashcardList from './components/FlashcardList'
 import LoadingSpinner from './components/LoadingSpinner'
 import ErrorMessage from './components/ErrorMessage'
 import PDFUploader from './components/PDFUploader'
+import ModelSelector from './components/ModelSelector'
 import { generateFlashcards } from './api'
 import { Layout, Typography, Row, Col, Tabs } from 'antd'
 import './App.css'
@@ -17,13 +18,15 @@ function App() {
   const [fullAnswer, setFullAnswer] = useState<string | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [model, setModel] = useState<string>('gpt-3.5-turbo')
+  const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(false)
 
   const handleSubmit = async (question: string, count: number) => {
     setIsLoading(true)
     setError(null)
     
     try {
-      const result: ChatResponse = await generateFlashcards(question, count)
+      const result: ChatResponse = await generateFlashcards(question, count, model, webSearchEnabled)
       setFlashcards(result.flashcards)
       setFullAnswer(result.fullAnswer)
     } catch (err) {
@@ -55,17 +58,40 @@ PDF content: ${content.substring(0, 1000)}...`
     setError(null)
   }
 
+  // Create a model selector component
+  const modelSelectorComponent = (
+    <div className="model-selector-container">
+      <ModelSelector 
+        value={model} 
+        onChange={setModel} 
+        disabled={isLoading} 
+        webSearchEnabled={webSearchEnabled}
+        onWebSearchChange={setWebSearchEnabled}
+      />
+    </div>
+  );
+
   // Define tab items for Ant Design Tabs
   const tabItems = [
     {
       key: 'chat',
       label: 'Ask a Question',
-      children: <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+      children: (
+        <>
+          {modelSelectorComponent}
+          <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+        </>
+      )
     },
     {
       key: 'pdf',
       label: 'Upload PDF',
-      children: <PDFUploader onPDFContent={handlePDFContent} />
+      children: (
+        <>
+          {modelSelectorComponent}
+          <PDFUploader onPDFContent={handlePDFContent} />
+        </>
+      )
     }
   ];
 
