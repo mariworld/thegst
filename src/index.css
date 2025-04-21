@@ -87,3 +87,17 @@ button:focus-visible {
 .rotate-y-180 {
   transform: rotateY(180deg);
 }
+
+/* Custom tabs styling */
+.custom-tabs .ant-tabs-tab {
+  color: white !important;
+}
+
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #1890ff !important;
+  font-weight: 500;
+}
+
+.custom-tabs .ant-tabs-ink-bar {
+  background-color: #1890ff;
+}

@@ -4,8 +4,9 @@ import ChatInput from './components/ChatInput'
 import FlashcardList from './components/FlashcardList'
 import LoadingSpinner from './components/LoadingSpinner'
 import ErrorMessage from './components/ErrorMessage'
+import PDFUploader from './components/PDFUploader'
 import { generateFlashcards } from './api'
-import { Layout, Typography, Row, Col } from 'antd'
+import { Layout, Typography, Row, Col, Tabs } from 'antd'
 import './App.css'
 
 const { Header, Content, Footer } = Layout
@@ -33,11 +34,40 @@ function App() {
     }
   }
 
+  const handlePDFContent = async (content: string) => {
+    if (!content.trim()) {
+      setError('The extracted PDF content was empty. Please try a different PDF.')
+      return
+    }
+    
+    // Create a more specific prompt for PDF content to avoid "Front:" and "Back:" formatting
+    const question = `Create ${5} flashcards from this PDF content. Each flashcard should have a clear question and answer without using prefixes like "Front:" or "Back:". For each flashcard, extract a key concept from the PDF and present it as a question, with the relevant information as the answer.
+
+PDF content: ${content.substring(0, 1000)}...`
+    
+    // Generate 5 flashcards by default from PDF
+    handleSubmit(question, 5)
+  }
+
   const handleReset = () => {
     setFlashcards([])
     setFullAnswer(undefined)
     setError(null)
   }
+
+  // Define tab items for Ant Design Tabs
+  const tabItems = [
+    {
+      key: 'chat',
+      label: 'Ask a Question',
+      children: <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+    },
+    {
+      key: 'pdf',
+      label: 'Upload PDF',
+      children: <PDFUploader onPDFContent={handlePDFContent} />
+    }
+  ];
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#141414' }}>
@@ -60,9 +90,16 @@ function App() {
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
             }}>
               <Title level={2} style={{ textAlign: 'center', color: 'white', marginBottom: '32px', fontSize: '1.75rem' }}>
-                Chat Bot
+                Create Flashcards
               </Title>
-              <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+              
+              <Tabs 
+                defaultActiveKey="chat" 
+                centered 
+                style={{ color: 'white' }} 
+                items={tabItems}
+                className="custom-tabs"
+              />
               
               {isLoading && (
                 <div style={{ marginTop: '32px', textAlign: 'center' }}>
@@ -114,7 +151,7 @@ function App() {
                     textAlign: 'center'
                   }}>
                     <Paragraph style={{ color: '#9CA3AF', fontSize: '1.1rem' }}>
-                      Ask a question in the chat to generate flashcards
+                      Ask a question in the chat or upload a PDF to generate flashcards
                     </Paragraph>
                   </div>
                 )}

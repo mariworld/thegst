@@ -70,7 +70,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ card }) => {
         margin: '0 auto'
       }}>
         <Paragraph style={{ 
-          color: '#d9d9d9', 
+          color: 'white', 
           fontSize: '20px', 
           textAlign: 'center', 
           margin: 0,

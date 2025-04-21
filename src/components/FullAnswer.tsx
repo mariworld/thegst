@@ -86,7 +86,7 @@ const FullAnswer: React.FC<FullAnswerProps> = ({ answer }) => {
       >
         <Space direction="vertical" size={16} style={{ width: '100%' }}>
           {answer.split('\n').map((paragraph, index) => (
-            <Paragraph key={index} style={{ color: '#d9d9d9', fontSize: '16px', lineHeight: 1.6 }}>
+            <Paragraph key={index} style={{ color: 'white', fontSize: '16px', lineHeight: 1.6 }}>
               {paragraph}
             </Paragraph>
           ))}

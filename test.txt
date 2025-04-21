@@ -1,0 +1,25 @@
+Test PDF Content for Flashcards
+
+This is a sample PDF content that will be used to test the PDF uploader functionality in our flashcard application.
+
+Key Concepts:
+
+1. React is a JavaScript library for building user interfaces.
+   - It uses a virtual DOM to improve performance.
+   - Components are the building blocks of React applications.
+
+2. TypeScript is a superset of JavaScript that adds static type definitions.
+   - It helps catch errors during development.
+   - It provides better code completion and documentation.
+
+3. Vite is a modern frontend build tool.
+   - It offers fast development server with hot module replacement.
+   - It uses ES modules for faster builds.
+
+4. Express is a minimal web application framework for Node.js.
+   - It's used to build web applications and APIs.
+   - It supports middleware for extending functionality.
+
+5. PDF parsing is done using the pdf-parse library.
+   - It extracts text content from PDF files.
+   - The extracted text can be used to generate flashcards. 
