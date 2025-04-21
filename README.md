@@ -1,63 +1,61 @@
 # AI Flashcard Generator
 
-A React application that generates flashcards from questions using OpenAI's API.
+A web application that uses AI to generate flashcards based on user questions. Built with React, TypeScript, and Ant Design.
 
 ## Features
 
-- Ask any question
-- Select number of flashcards (1-10)
-- Sends the question to OpenAI and gets a detailed answer
-- Converts the answer into the specified number of flashcards
-- Flip flashcards to see questions and answers
-- Show/hide the full answer with a button
-- Clean, responsive UI with Tailwind CSS
+- Ask questions and get AI-generated flashcards
+- Interactive flashcard interface with question and answer sides
+- Adjustable number of flashcards (1-10)
+- View full detailed answer
+- Dark mode UI
+- Responsive design for various screen sizes
 
-## Prerequisites
+## Tech Stack
 
-- Node.js (version 14 or higher)
-- npm or yarn
-- OpenAI API key
+- **Frontend**: React, TypeScript, Ant Design
+- **UI**: Responsive design with custom styling
+- **State Management**: React useState hooks
+- **Backend Integration**: API to communicate with AI services
 
-## Setup
+## Installation
 
-1. Clone this repository
-2. Install dependencies:
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/ai-flashcard-generator.git
+cd ai-flashcard-generator
 ```
+
+2. Install dependencies:
+```bash
 npm install
 ```
-3. Create a `.env` file in the root directory with your OpenAI API key:
+
+3. Create a `.env` file in the root directory with your API key:
 ```
 VITE_OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-## Running the Application
-
-Start the development server:
-```
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-This will start both the React frontend and the Express backend server. The application will be available at `http://localhost:5173` (or another port if 5173 is in use).
+## Usage
 
-## Building for Production
+1. Enter your question in the text input area
+2. Set the number of flashcards you want to generate (1-10)
+3. Press Enter or click "Generate Flashcards"
+4. View and interact with your flashcards
+5. Click on cards to flip between question and answer
+6. Use "Show Full Answer" to view the complete detailed response
 
-Build the application for production:
-```
-npm run build
-```
+## Future Enhancements
 
-Then start the production server:
-```
-npm start
-```
-
-## Technology Stack
-
-- React with TypeScript
-- Vite for build tooling
-- Tailwind CSS for styling
-- Express server for API
-- OpenAI API for generating answers and flashcards
+- PDF document upload for flashcard generation
+- User accounts to save flashcard sets
+- Export flashcards to different formats
+- Custom flashcard themes
 
 ## License
 
