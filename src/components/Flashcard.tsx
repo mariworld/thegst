@@ -1,24 +1,34 @@
 import React, { useState } from 'react';
-import { Card, Typography, Badge } from 'antd';
-import { SyncOutlined } from '@ant-design/icons';
+import { Card, Typography, Badge, Popconfirm } from 'antd';
+import { SyncOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Flashcard as FlashcardType } from '../types';
 
 const { Paragraph, Text } = Typography;
 
 interface FlashcardProps {
   card: FlashcardType;
+  onDelete?: (id: string) => void;
 }
 
-const Flashcard: React.FC<FlashcardProps> = ({ card }) => {
+const Flashcard: React.FC<FlashcardProps> = ({ card, onDelete }) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card flip when clicking delete
+    if (onDelete && card.id) {
+      // Ensure card.id is a string when passing to onDelete
+      onDelete(String(card.id));
+    }
+  };
+
   return (
     <Card
       hoverable
+      className="flashcard"
       style={{ 
         borderColor: '#303030', 
         backgroundColor: '#1f1f1f',
@@ -26,34 +36,61 @@ const Flashcard: React.FC<FlashcardProps> = ({ card }) => {
         borderRadius: '12px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
         transition: 'all 0.3s ease',
-        width: '100%',
+        height: '100%',
         position: 'relative',
-        paddingTop: '16px'
+        marginTop: '20px',
+        paddingTop: '8px'
       }}
       bodyStyle={{ 
-        padding: '32px 40px',
-        minHeight: 200,
+        padding: '24px 20px',
+        height: '100%',
+        minHeight: '180px',
         display: 'flex',
         flexDirection: 'column',
+        justifyContent: 'space-between'
       }}
       onClick={handleFlip}
     >
+      {onDelete && (
+        <Popconfirm
+          title="Delete this flashcard?"
+          description="This cannot be undone."
+          onConfirm={handleDelete}
+          onCancel={(e) => e?.stopPropagation()}
+          okText="Yes"
+          cancelText="No"
+          placement="topRight"
+        >
+          <DeleteOutlined 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              color: '#ff4d4f',
+              fontSize: '16px',
+              zIndex: 2,
+              cursor: 'pointer'
+            }}
+          />
+        </Popconfirm>
+      )}
+      
       <div style={{
         position: 'absolute',
-        top: '-16px',
+        top: '-14px',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 1,
-        width: 'auto'
       }}>
         <Badge 
           count={isFlipped ? 'ANSWER' : 'QUESTION'} 
           style={{ 
             backgroundColor: isFlipped ? '#237804' : '#096dd9', 
             padding: '0 16px',
-            height: '32px',
-            lineHeight: '32px',
-            borderRadius: '16px',
+            height: '28px',
+            lineHeight: '28px',
+            borderRadius: '14px',
             fontSize: '14px',
             fontWeight: 'bold'
           }} 
@@ -65,17 +102,16 @@ const Flashcard: React.FC<FlashcardProps> = ({ card }) => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        padding: '16px 16px',
-        maxWidth: '90%',
-        margin: '0 auto'
+        padding: '8px',
+        width: '100%',
       }}>
         <Paragraph style={{ 
           color: 'white', 
-          fontSize: '20px', 
+          fontSize: '18px', 
           textAlign: 'center', 
           margin: 0,
-          lineHeight: 1.5,
-          wordBreak: 'break-word'
+          wordBreak: 'break-word',
+          width: '100%'
         }}>
           {isFlipped 
             ? card.answer || 'No answer available' 
@@ -84,9 +120,9 @@ const Flashcard: React.FC<FlashcardProps> = ({ card }) => {
         </Paragraph>
       </div>
 
-      <div style={{ marginTop: 24, textAlign: 'center' }}>
+      <div style={{ marginTop: '12px', textAlign: 'center' }}>
         <Text type="secondary" style={{ 
-          fontSize: '14px', 
+          fontSize: '13px', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',

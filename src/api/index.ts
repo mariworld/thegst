@@ -1,16 +1,23 @@
 import axios from 'axios';
-import { Flashcard } from '../types';
+import { Flashcard, ChatResponse } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 // Get API key from environment
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+
+interface Message {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
 
 // This function will be used to call the API endpoint we'll create
 export const generateFlashcards = async (
   question: string, 
   count: number,
   model: string = 'gpt-3.5-turbo',
-  webSearchEnabled: boolean = false
+  webSearchEnabled: boolean = false,
+  previousMessages: Message[] = []
 ): Promise<{
   flashcards: Flashcard[];
   fullAnswer: string;
@@ -19,10 +26,30 @@ export const generateFlashcards = async (
     console.log('API key available:', API_KEY ? 'Yes' : 'No');
     console.log('Using model:', model);
     console.log('Web search enabled:', webSearchEnabled);
+    console.log('Previous messages count:', previousMessages.length);
     
     if (!API_KEY) {
       throw new Error('OpenAI API key is missing. Please check your .env file.');
     }
+
+    // Build messages array with history if available
+    const messages: Message[] = [];
+    
+    // Add system message
+    messages.push({ 
+      role: 'system', 
+      content: webSearchEnabled ? 
+        'You are a helpful assistant with access to web search. When appropriate, search for up-to-date information to answer the query accurately.' : 
+        'You are a helpful assistant.'
+    });
+    
+    // Add previous messages if any
+    if (previousMessages.length > 0) {
+      messages.push(...previousMessages);
+    }
+    
+    // Add current user question
+    messages.push({ role: 'user', content: question });
 
     // Step 1: Get the full answer
     console.log('Getting full answer from OpenAI...');
@@ -30,15 +57,7 @@ export const generateFlashcards = async (
       OPENAI_API_URL,
       {
         model: model,
-        messages: [
-          { 
-            role: 'system', 
-            content: webSearchEnabled ? 
-              'You are a helpful assistant with access to web search. When appropriate, search for up-to-date information to answer the query accurately.' : 
-              'You are a helpful assistant.'
-          },
-          { role: 'user', content: question }
-        ],
+        messages: messages,
         temperature: 0.7,
         ...(webSearchEnabled && { 
           tools: [{ 
@@ -100,29 +119,29 @@ export const generateFlashcards = async (
         
         console.log('Simulated search results:', simulatedSearchResults.substring(0, 100) + '...');
         
+        // Create updated messages array with tool results
+        const updatedMessages = [
+          ...messages,
+          { 
+            role: 'assistant', 
+            content: null, 
+            tool_calls: responseMessage.tool_calls 
+          },
+          { 
+            role: 'tool', 
+            tool_call_id: toolCall.id, 
+            content: simulatedSearchResults
+          }
+        ];
+        
         // Make a second API call to get the final answer with the search results
         const followUpResponse = await axios.post(
           OPENAI_API_URL,
           {
             model: model,
-            messages: [
-              { 
-                role: 'system', 
-                content: 'You are a helpful assistant with access to web search. Provide a comprehensive answer using the search results.' 
-              },
-              { role: 'user', content: question },
-              { 
-                role: 'assistant', 
-                content: null, 
-                tool_calls: responseMessage.tool_calls 
-              },
-              { 
-                role: 'tool', 
-                tool_call_id: toolCall.id, 
-                content: simulatedSearchResults
-              }
-            ],
-            temperature: 0.7
+            messages: updatedMessages,
+            temperature: 0.7,
+            max_tokens: 1000
           },
           {
             headers: {
@@ -142,54 +161,31 @@ export const generateFlashcards = async (
         fullAnswer = `I attempted to search the web for information about "${question}" but encountered an issue with the search process. Here's what I know about the topic without web search: ${question} is a topic that might have recent developments that aren't covered in my training data.`;
       }
     } else {
-      // Fallback for unexpected response format
+      // Fallback for unexpected format
       console.log('Unexpected message format:', responseMessage);
       fullAnswer = 'The AI processed your query but returned data in an unexpected format.';
     }
     
-    console.log('Full answer received:', fullAnswer ? fullAnswer.substring(0, 100) + '...' : 'No content');
-    
-    // Step 2: Generate flashcards
-    console.log('Generating flashcards...');
+    console.log('Full answer:', fullAnswer.substring(0, 100) + '...');
+
+    // Step 2: Generate flashcards from the full answer
+    console.log('Calling OpenAI for flashcards...');
     const flashcardsResponse = await axios.post(
       OPENAI_API_URL,
       {
         model: model,
         messages: [
-          { 
-            role: 'system', 
-            content: webSearchEnabled ?
-              'You are a precise JSON generator with access to web search. When appropriate, search for current information. Respond with ONLY valid JSON.' :
-              'You are a precise JSON generator. Respond with ONLY valid JSON.'
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that creates flashcards from text. You MUST respond with valid JSON only, with no additional text or explanations.'
           },
-          { 
-            role: 'user', 
-            content: `
-Create ${count} flashcards from this information. 
-Format your response as a valid JSON object with this EXACT structure:
-{
-  "flashcards": [
-    {"question": "First question?", "answer": "First answer"},
-    {"question": "Second question?", "answer": "Second answer"}
-  ]
-}
-DO NOT include any text outside the JSON object.
-
-Here's the information: ${fullAnswer}
-`
+          {
+            role: 'user',
+            content: `Create exactly ${count} flashcards from the following answer. Each flashcard should have a question and answer. The question should be a specific, targeted query that tests understanding of a key concept, and the answer should be comprehensive but concise. Format your response as a JSON array with objects containing "id", "question", and "answer" fields. Do not include any explanations, markdown formatting, or non-JSON text in your answer. Here is the text to create flashcards from:\n\n${fullAnswer}`
           }
         ],
-        temperature: 0.5,
-        ...(webSearchEnabled && { 
-          tools: [{ 
-            type: "function",
-            function: {
-              name: "web_search",
-              description: "Search the web for current information"
-            }
-          }], 
-          tool_choice: "auto" 
-        })
+        temperature: 0.7,
+        max_tokens: 2000,
       },
       {
         headers: {
@@ -199,139 +195,155 @@ Here's the information: ${fullAnswer}
       }
     );
     
-    // Log the flashcards response structure
-    console.log('Flashcards response structure:', JSON.stringify(flashcardsResponse.data).substring(0, 500) + '...');
+    // Get the flashcards response
+    console.log('Got response from OpenAI for flashcards');
+    const flashcardsContent = flashcardsResponse.data.choices[0].message.content;
     
-    // Handle different response formats for the flashcards
-    let content = '';
-    const flashcardsResponseMessage = flashcardsResponse.data.choices[0].message;
-    
-    if (flashcardsResponseMessage.content !== null && flashcardsResponseMessage.content !== undefined) {
-      // Standard response with JSON content
-      content = flashcardsResponseMessage.content;
-    } else if (flashcardsResponseMessage.tool_calls) {
-      // The model used tools but didn't return a final structure
-      console.log('Tool calls detected in flashcards response');
+    // Try to parse the response
+    try {
+      // Clean the content to ensure it's valid JSON
+      const cleanedContent = flashcardsContent.trim().replace(/```json|```/g, '');
+      const parsedResponse = JSON.parse(cleanedContent);
       
-      try {
-        // Extract the tool call
-        const toolCall = flashcardsResponseMessage.tool_calls[0];
-        let webSearchQuery = `flashcards about ${question}`;
-        
-        if (toolCall.function && toolCall.function.arguments) {
-          try {
-            const args = JSON.parse(toolCall.function.arguments);
-            if (args.query) {
-              webSearchQuery = args.query;
-              console.log('Extracted flashcards web search query:', webSearchQuery);
-            }
-          } catch (e) {
-            console.log('Could not parse flashcards web search arguments');
-          }
-        }
-        
-        // Simulate web search results for flashcards
-        const simulatedFlashcardSearchResults = `Web search results for "${webSearchQuery}": 
-        1. ${webSearchQuery} is a common topic for educational resources and study guides.
-        2. Popular flashcard topics related to ${webSearchQuery} include key definitions, important concepts, and notable examples.
-        3. Best practices for creating flashcards about ${webSearchQuery} suggest focusing on core principles and using clear, concise language.`;
-        
-        // Make a follow-up call to get the final flashcards with search results
-        const followUpFlashcardsResponse = await axios.post(
-          OPENAI_API_URL,
-          {
-            model: model,
-            messages: [
-              { 
-                role: 'system', 
-                content: 'You are a precise JSON generator. Create flashcards in valid JSON format based on the information provided. Include any relevant details from web search results.' 
-              },
-              { 
-                role: 'user', 
-                content: `Create ${count} flashcards about: ${question}. Include information from the full answer.` 
-              },
-              { 
-                role: 'assistant', 
-                content: null, 
-                tool_calls: flashcardsResponseMessage.tool_calls 
-              },
-              { 
-                role: 'tool', 
-                tool_call_id: toolCall.id, 
-                content: simulatedFlashcardSearchResults
-              },
-              {
-                role: 'user',
-                content: `Now create exactly ${count} flashcards based on this information and the original answer: ${fullAnswer}
-
-Format your response as a valid JSON object with this EXACT structure:
-{
-  "flashcards": [
-    {"question": "First question?", "answer": "First answer"},
-    {"question": "Second question?", "answer": "Second answer"}
-  ]
-}
-DO NOT include any text outside the JSON object.`
-              }
-            ],
-            temperature: 0.5
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${API_KEY}`
-            }
-          }
-        );
-        
-        content = followUpFlashcardsResponse.data.choices[0].message.content;
-        if (!content) {
-          throw new Error('No content in flashcards follow-up response');
-        }
-      } catch (flashcardsSearchError) {
-        console.error('Error processing flashcards with web search:', flashcardsSearchError);
-        // Create generic flashcards as a fallback
-        content = JSON.stringify({
-          flashcards: Array.from({ length: count }, (_, i) => ({
-            question: `Question ${i+1} about ${question}?`,
-            answer: `This would contain information about ${question} relevant to question ${i+1}.`
-          }))
-        });
+      // Make sure it's an array
+      if (!Array.isArray(parsedResponse)) {
+        throw new Error('Response is not an array');
       }
-    } else {
-      // Fallback for unexpected format
-      console.log('Unexpected flashcards message format:', flashcardsResponseMessage);
-      content = JSON.stringify({
-        flashcards: [
-          {
-            question: "What happened with my request?",
-            answer: "The AI processed your query but returned data in an unexpected format."
-          }
-        ]
-      });
+      
+      // Ensure each item has the required fields
+      const flashcards = parsedResponse.map((item, index) => ({
+        id: uuidv4(),
+        question: item.question || `Question ${index + 1}`,
+        answer: item.answer || `Answer ${index + 1}`
+      }));
+      
+      // Log the flashcards
+      console.log(`Generated ${flashcards.length} flashcards`);
+      
+      return {
+        flashcards,
+        fullAnswer
+      };
+    } catch (error) {
+      console.error('Error parsing flashcards response:', error);
+      console.error('Raw response:', flashcardsContent);
+      
+      // Attempt to recover by creating default flashcards
+      const defaultFlashcards = Array.from({ length: count }, (_, i) => ({
+        id: uuidv4(),
+        question: `Question ${i + 1} (Error in parsing)`,
+        answer: `Sorry, there was an error generating this flashcard. Please try again with different parameters.`
+      }));
+      
+      return {
+        flashcards: defaultFlashcards,
+        fullAnswer
+      };
     }
-    
-    console.log('Raw flashcard content:', content.substring(0, 150) + '...');
-    
-    // Extract JSON 
-    const jsonOnly = content.replace(/```json/g, '').replace(/```/g, '').trim();
-    const flashcardsJson = JSON.parse(jsonOnly);
-    
-    // Add IDs to flashcards
-    const flashcardsWithIds = flashcardsJson.flashcards.map((card: any, index: number) => ({
-      ...card,
-      id: `card-${index}`
-    }));
-    
-    return {
-      flashcards: flashcardsWithIds,
-      fullAnswer
-    };
   } catch (error) {
     console.error('Error generating flashcards:', error);
-    if (axios.isAxiosError(error) && error.response) {
-      console.error('OpenAI API error:', error.response.data);
+    throw error;
+  }
+};
+
+// New utility function to convert chats to API-friendly message format
+export const chatMessagesToApiMessages = (
+  messages: {
+    role: string;
+    content: string;
+    id: string;
+    chatId: string;
+    createdAt: string;
+  }[]
+): Message[] => {
+  return messages
+    .filter(msg => msg.role === 'user' || msg.role === 'assistant' || msg.role === 'system')
+    .map(msg => ({
+      role: msg.role as 'user' | 'assistant' | 'system',
+      content: msg.content
+    }));
+};
+
+/**
+ * Regenerate flashcards for an existing chat using its full answer
+ * @param fullAnswer The full answer text from the existing chat
+ * @param count The number of flashcards to generate
+ * @param model The OpenAI model to use
+ * @returns A promise with the generated flashcards
+ */
+export const regenerateFlashcards = async (
+  fullAnswer: string,
+  count: number = 5,
+  model: string = 'gpt-3.5-turbo'
+): Promise<Flashcard[]> => {
+  try {
+    console.log('Regenerating flashcards from existing answer...');
+    const flashcardsResponse = await axios.post(
+      OPENAI_API_URL,
+      {
+        model: model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that creates flashcards from text. You MUST respond with valid JSON only, with no additional text or explanations.'
+          },
+          {
+            role: 'user',
+            content: `Create exactly ${count} flashcards from the following answer. Each flashcard should have a question and answer. The question should be a specific, targeted query that tests understanding of a key concept, and the answer should be comprehensive but concise. Format your response as a JSON array with objects containing "id", "question", and "answer" fields. Do not include any explanations, markdown formatting, or non-JSON text in your answer. Here is the text to create flashcards from:\n\n${fullAnswer}`
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        }
+      }
+    );
+    
+    // Get the flashcards response
+    console.log('Got response from OpenAI for regenerated flashcards');
+    const flashcardsContent = flashcardsResponse.data.choices[0].message.content;
+    
+    // Try to parse the response
+    try {
+      // Clean the content to ensure it's valid JSON
+      const cleanedContent = flashcardsContent.trim().replace(/```json|```/g, '');
+      const parsedResponse = JSON.parse(cleanedContent);
+      
+      // Make sure it's an array
+      if (!Array.isArray(parsedResponse)) {
+        throw new Error('Response is not an array');
+      }
+      
+      // Ensure each item has the required fields
+      const flashcards = parsedResponse.map((item, index) => ({
+        id: uuidv4(),
+        question: item.question || `Question ${index + 1}`,
+        answer: item.answer || `Answer ${index + 1}`
+      }));
+      
+      // Log the flashcards
+      console.log(`Regenerated ${flashcards.length} flashcards`);
+      
+      return flashcards;
+    } catch (error) {
+      console.error('Error parsing regenerated flashcards response:', error);
+      console.error('Raw response:', flashcardsContent);
+      
+      // Attempt to recover by creating default flashcards
+      const defaultFlashcards = Array.from({ length: count }, (_, i) => ({
+        id: uuidv4(),
+        question: `Question ${i + 1} (Error in parsing)`,
+        answer: `Sorry, there was an error generating this flashcard. Please try again with different parameters.`
+      }));
+      
+      return defaultFlashcards;
     }
+  } catch (error) {
+    console.error('Error regenerating flashcards:', error);
     throw error;
   }
 }; 

@@ -1,45 +1,137 @@
-# AI Flashcard Generator
+# The GST: AI Flashcard Generator
 
-A web application that uses AI to generate flashcards based on user questions. Built with React, TypeScript, and Ant Design.
+A modern flashcard application that uses AI to automatically generate study materials from your questions or PDFs.
 
 ## Features
 
-- Ask questions and get AI-generated flashcards
-- Interactive flashcard interface with question and answer sides
-- Adjustable number of flashcards (1-10)
-- View full detailed answer
-- Dark mode UI
-- Responsive design for various screen sizes
+- Ask questions to generate AI-powered flashcards
+- Upload PDFs to extract content and create flashcards
+- Save flashcard collections for later review
+- Chat history for context-aware conversations
+- Database persistence with Supabase
 
-## Tech Stack
+## Setting Up Supabase Integration
 
-- **Frontend**: React, TypeScript, Ant Design
-- **UI**: Responsive design with custom styling
-- **State Management**: React useState hooks
-- **Backend Integration**: API to communicate with AI services
+This application uses Supabase for database persistence. Follow these steps to set it up:
 
-## Installation
+1. Create a Supabase account at [https://supabase.com](https://supabase.com)
+2. Create a new project
+3. Set up the following tables in your Supabase database:
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/ai-flashcard-generator.git
-cd ai-flashcard-generator
+### Database Schema
+
+**chats**
+```sql
+CREATE TABLE chats (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  date TEXT NOT NULL,
+  question TEXT NOT NULL,
+  full_answer TEXT,
+  user_id UUID,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-2. Install dependencies:
+**flashcards**
+```sql
+CREATE TABLE flashcards (
+  id UUID PRIMARY KEY,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  chat_id UUID REFERENCES chats(id) ON DELETE CASCADE,
+  collection_id UUID REFERENCES collections(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**collections**
+```sql
+CREATE TABLE collections (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  date TEXT NOT NULL,
+  source UUID REFERENCES chats(id) ON DELETE SET NULL,
+  user_id UUID,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**chat_messages**
+```sql
+CREATE TABLE chat_messages (
+  id UUID PRIMARY KEY,
+  chat_id UUID REFERENCES chats(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  role TEXT CHECK (role IN ('user', 'assistant', 'system')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### Setting up the database
+
+You can create these tables in your Supabase project using one of the following methods:
+
+#### Method 1: Using the Supabase SQL Editor
+
+1. Go to your Supabase project dashboard
+2. Click on "SQL Editor" in the left sidebar
+3. Create a new query and paste the contents of `scripts/create-tables.sql`
+4. Click "Run" to execute the SQL commands
+
+#### Method 2: Using the Supabase CLI
+
+1. Install the Supabase CLI if you haven't already: `npm install -g supabase`
+2. Log in to your Supabase account: `supabase login`
+3. Link your project: `supabase link --project-ref YOUR_PROJECT_ID`
+4. Apply the SQL schema: `supabase db push scripts/create-tables.sql`
+
+Note: After creating the tables, you'll also need to set up Row Level Security (RLS) policies as specified in the `create-tables.sql` file to allow basic operations on your tables.
+
+4. Create a `.env` file in the project root with the following variables:
+```
+# OpenAI API key for AI-powered flashcards
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+
+# Supabase configuration
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Optional: Port configuration
+PORT=3001
+```
+
+5. Replace `your_supabase_url_here` and `your_supabase_anon_key_here` with the values from your Supabase project settings.
+
+## Setup and Installation
+
+Install dependencies:
 ```bash
 npm install
 ```
 
-3. Create a `.env` file in the root directory with your API key:
-```
-VITE_OPENAI_API_KEY=your_openai_api_key_here
+Run the development server:
+```bash
+npm start
 ```
 
-4. Start the development server:
+Build for production:
 ```bash
-npm run dev
+npm run build
 ```
+
+## Tech Stack
+
+- React with TypeScript
+- Vite
+- Tailwind CSS
+- Ant Design
+- Express.js backend
+- OpenAI API integration
+- Supabase for database persistence
 
 ## Usage
 

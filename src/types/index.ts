@@ -12,4 +12,11 @@ export interface OpenAIResponse {
 export interface ChatResponse {
   flashcards: Flashcard[];
   fullAnswer: string;
+}
+
+export interface WebSearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+  relevanceScore?: number;
 } 
