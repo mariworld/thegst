@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabase';
 import { Flashcard } from '../types';
+import { formatDisplayDate, formatDatabaseDate } from '../utils/dateFormatters';
 
 export interface ChatData {
   id: string;
@@ -52,7 +53,7 @@ export const fetchChats = async (): Promise<ChatData[]> => {
         return {
           id: chat.id,
           title: chat.title,
-          date: chat.date,
+          date: formatDisplayDate(chat.date),
           question: chat.question,
           flashcards: [],
           fullAnswer: chat.full_answer
@@ -62,7 +63,7 @@ export const fetchChats = async (): Promise<ChatData[]> => {
       return {
         id: chat.id,
         title: chat.title,
-        date: chat.date, 
+        date: formatDisplayDate(chat.date), 
         question: chat.question,
         flashcards: flashcards || [],
         fullAnswer: chat.full_answer
@@ -75,18 +76,20 @@ export const fetchChats = async (): Promise<ChatData[]> => {
 
 export const createChat = async (title: string = 'New Chat'): Promise<ChatData | null> => {
   const id = uuidv4();
-  const now = new Date().toISOString();
+  const now = new Date();
+  const formattedDate = formatDisplayDate(now);
+  const timestamp = formatDatabaseDate(now);
   
   const { data, error } = await supabase
     .from('chats')
     .insert({
       id,
       title,
-      date: now,
+      date: formattedDate,
       question: '',
       full_answer: null,
-      created_at: now,
-      updated_at: now
+      created_at: timestamp,
+      updated_at: timestamp
     })
     .select()
     .single();
@@ -226,7 +229,7 @@ export const fetchCollections = async (): Promise<CollectionData[]> => {
         return {
           id: collection.id,
           title: collection.title,
-          date: collection.date,
+          date: formatDisplayDate(collection.date),
           flashcards: [],
           source: collection.source || ''
         };
@@ -235,7 +238,7 @@ export const fetchCollections = async (): Promise<CollectionData[]> => {
       return {
         id: collection.id,
         title: collection.title,
-        date: collection.date,
+        date: formatDisplayDate(collection.date),
         flashcards: flashcards || [],
         source: collection.source || ''
       };
@@ -251,7 +254,9 @@ export const createCollection = async (
   source: string | null = null
 ): Promise<CollectionData | null> => {
   const id = uuidv4();
-  const now = new Date().toISOString();
+  const now = new Date();
+  const formattedDate = formatDisplayDate(now);
+  const timestamp = formatDatabaseDate(now);
   
   // First create the collection
   const { data, error } = await supabase
@@ -259,10 +264,10 @@ export const createCollection = async (
     .insert({
       id,
       title,
-      date: now,
+      date: formattedDate,
       source,
-      created_at: now,
-      updated_at: now
+      created_at: timestamp,
+      updated_at: timestamp
     })
     .select()
     .single();
@@ -274,13 +279,13 @@ export const createCollection = async (
   
   // Then add the flashcards
   const flashcardsToInsert = flashcards.map(card => ({
-    id: card.id || uuidv4(),
+    id: uuidv4(), // Always generate a new ID to avoid conflicts
     question: card.question,
     answer: card.answer,
     chat_id: null,
     collection_id: id,
-    created_at: now,
-    updated_at: now
+    created_at: timestamp,
+    updated_at: timestamp
   }));
   
   const { error: flashcardsError } = await supabase

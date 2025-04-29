@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Flashcard } from '../types';
 import * as db from '../services/database';
 import { regenerateFlashcards as apiRegenerateFlashcards } from '../api';
+import { formatDisplayDate, formatDatabaseDate } from '../utils/dateFormatters';
 
 export interface Chat {
   id: string;
@@ -132,10 +133,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     if (!dbConnected) {
       const id = uuidv4();
       const now = new Date();
+      const formattedDate = formatDisplayDate(now);
+      
       const newChat: ChatData = {
         id,
         title: 'New Chat',
-        date: now.toLocaleString(),
+        date: formattedDate,
         flashcards: [],
         question: '',
       };
@@ -240,10 +243,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         // Fallback to local state
         const collectionId = uuidv4();
         const now = new Date();
+        const formattedDate = formatDisplayDate(now);
+        
         const newCollection: CollectionData = {
           id: collectionId,
           title,
-          date: now.toLocaleString(),
+          date: formattedDate,
           flashcards: [...chat.flashcards],
           source: chat.id,
         };
@@ -254,10 +259,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       // Local state only
       const collectionId = uuidv4();
       const now = new Date();
+      const formattedDate = formatDisplayDate(now);
+      
       const newCollection: CollectionData = {
         id: collectionId,
         title,
-        date: now.toLocaleString(),
+        date: formattedDate,
         flashcards: [...chat.flashcards],
         source: chat.id,
       };

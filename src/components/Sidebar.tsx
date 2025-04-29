@@ -71,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
-          alignItems: 'center',
+          alignItems: 'flex-start',
           padding: '8px',
           background: isSelected ? '#1f1f1f' : 'transparent',
           borderRadius: '4px',
@@ -80,11 +80,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}
         onClick={() => onChatSelect(chat.id)}
       >
-        <div style={{ display: 'flex', alignItems: 'center', overflow: 'hidden', flex: 1 }}>
-          <MessageOutlined style={{ fontSize: '16px', marginRight: '8px', color: isSelected ? '#1677ff' : '#9CA3AF' }} />
-          <div style={{ overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', flex: 1 }}>
+          <MessageOutlined style={{ fontSize: '16px', marginRight: '8px', marginTop: '3px', color: isSelected ? '#1677ff' : '#9CA3AF' }} />
+          <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <Text ellipsis style={{ color: 'white', fontSize: '14px' }}>{chat.title}</Text>
-            <Text style={{ color: '#9CA3AF', fontSize: '12px' }}>{chat.date}</Text>
+            <Text style={{ color: '#9CA3AF', fontSize: '12px', marginTop: '2px' }}>{chat.date}</Text>
           </div>
         </div>
         <Popconfirm
@@ -251,32 +251,76 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
       
       {(collapsed || expandedSections.collections) && (
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={selectedCollectionId ? [selectedCollectionId] : []}
-          style={{ 
-            background: 'transparent', 
-            border: 'none',
-            padding: '0 8px',
-            maxHeight: '30vh',
-            overflowY: 'auto'
-          }}
-          items={collections.map((collection) => ({
-            key: collection.id,
-            icon: <FileTextOutlined style={{ fontSize: '16px' }} />,
-            label: !collapsed ? (
-              <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '4px 0' }}>
-                <Text ellipsis style={{ color: 'white', fontSize: '14px' }}>{collection.title}</Text>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Text style={{ color: '#9CA3AF', fontSize: '12px' }}>{collection.count} cards</Text>
-                  <Text style={{ color: '#9CA3AF', fontSize: '12px' }}>{collection.date}</Text>
+        <div style={{ maxHeight: '30vh', overflowY: 'auto', padding: '0 8px' }}>
+          {collapsed ? (
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={selectedCollectionId ? [selectedCollectionId] : []}
+              style={{ 
+                background: 'transparent', 
+                border: 'none'
+              }}
+              items={collections.map((collection) => ({
+                key: collection.id,
+                icon: <FileTextOutlined style={{ fontSize: '16px' }} />,
+                onClick: () => onCollectionSelect(collection.id)
+              }))}
+            />
+          ) : (
+            collections.map(collection => {
+              const isSelected = collection.id === selectedCollectionId;
+              return (
+                <div 
+                  key={collection.id}
+                  style={{ 
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    padding: '10px 8px',
+                    background: isSelected ? '#1677ff' : 'transparent',
+                    borderRadius: '4px',
+                    marginBottom: '6px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => onCollectionSelect(collection.id)}
+                >
+                  <FileTextOutlined style={{ 
+                    fontSize: '16px', 
+                    marginRight: '8px',
+                    marginTop: '3px',
+                    color: isSelected ? 'white' : '#9CA3AF' 
+                  }} />
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    overflow: 'hidden'
+                  }}>
+                    <Text ellipsis style={{ 
+                      color: isSelected ? 'white' : 'white', 
+                      fontSize: '14px', 
+                      marginBottom: '4px' 
+                    }}>
+                      {collection.title}
+                    </Text>
+                    <Text style={{ 
+                      color: isSelected ? 'rgba(255, 255, 255, 0.85)' : '#9CA3AF', 
+                      fontSize: '12px' 
+                    }}>
+                      {collection.count} cards
+                    </Text>
+                    <Text style={{ 
+                      color: isSelected ? 'rgba(255, 255, 255, 0.85)' : '#9CA3AF', 
+                      fontSize: '12px', 
+                      marginTop: '4px' 
+                    }}>
+                      {collection.date}
+                    </Text>
+                  </div>
                 </div>
-              </div>
-            ) : '',
-            onClick: () => onCollectionSelect(collection.id)
-          }))}
-        />
+              );
+            })
+          )}
+        </div>
       )}
       
       {collections.length === 0 && !collapsed && expandedSections.collections && (
