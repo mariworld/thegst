@@ -8,6 +8,8 @@
     "server": "tsx server.ts",
     "start": "concurrently \"npm run dev\" \"npm run server\"",
     "build": "tsc -b && vite build",
+    "render-build": "npm ci && npm run build",
+    "render-start": "node --experimental-modules server.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "check-db": "node --experimental-json-modules scripts/check-db.js",
@@ -27,7 +29,8 @@
     "pdf-parse": "^1.1.1",
     "pdf.js-extract": "^0.2.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
