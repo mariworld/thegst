@@ -13,14 +13,12 @@ interface PDFUploaderProps {
 const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [debugInfo, setDebugInfo] = useState<string>('');
   const [logs, setLogs] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addLog = (message: string) => {
     console.log('[PDF Uploader]', message);
     setLogs(prev => [...prev.slice(-9), message]); // Keep last 10 logs
-    setDebugInfo(message);
   };
 
   const handleFileSelection = async (file: File) => {
@@ -169,7 +167,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
       }, 0);
       return false; // Prevent default upload behavior
     },
-    itemRender: (originNode, file) => (
+    itemRender: (originNode) => (
       <div style={{color: 'white'}}>{originNode}</div>
     ),
     showUploadList: {

@@ -54,8 +54,8 @@ const Flashcard: React.FC<FlashcardProps> = ({ card, onDelete }) => {
         <Popconfirm
           title="Delete this flashcard?"
           description="This cannot be undone."
-          onConfirm={handleDelete}
-          onCancel={(e) => e?.stopPropagation()}
+          onConfirm={(e) => { if (e) { e.stopPropagation(); } handleDelete(e as React.MouseEvent); }}
+          onCancel={(e) => { if (e) { e.stopPropagation(); } }}
           okText="Yes"
           cancelText="No"
           placement="topRight"

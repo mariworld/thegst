@@ -5,7 +5,7 @@ import { Flashcard as FlashcardType } from '../types';
 import Flashcard from './Flashcard';
 import { useChat } from '../context/ChatContext';
 
-const { Text, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 interface FlashcardListProps {
   cards: FlashcardType[];

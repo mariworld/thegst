@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Menu, Button, Typography, Divider, Badge, Tooltip, Dropdown, message, Popconfirm } from 'antd';
+import { Layout, Menu, Button, Typography, Divider, Badge, message, Popconfirm } from 'antd';
 import { 
   PlusOutlined, 
   MessageOutlined, 
@@ -8,9 +8,7 @@ import {
   FileTextOutlined,
   FolderOutlined,
   StarOutlined,
-  SaveOutlined,
   DeleteOutlined,
-  EllipsisOutlined
 } from '@ant-design/icons';
 import { Chat, FlashcardCollection } from '../context/ChatContext';
 
@@ -36,7 +34,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   collections = [],
   onChatSelect, 
   onNewChat,
-  onSaveCollection = () => {},
   onCollectionSelect = () => {},
   onDeleteChat = () => {},
   selectedChatId,
@@ -57,11 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     });
   };
 
-  const handleSaveCurrentAsCollection = () => {
-    if (selectedChatId) {
-      onSaveCollection(selectedChatId);
-    }
-  };
 
   const renderChatItem = (chat: Chat) => {
     const isSelected = chat.id === selectedChatId;

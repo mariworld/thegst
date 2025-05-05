@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Flashcard } from '../types';
 import * as db from '../services/database';
 import { regenerateFlashcards as apiRegenerateFlashcards } from '../api';
-import { formatDisplayDate, formatDatabaseDate } from '../utils/dateFormatters';
+import { formatDisplayDate } from '../utils/dateFormatters';
 
 export interface Chat {
   id: string;

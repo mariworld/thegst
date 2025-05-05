@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Flashcard, ChatResponse } from '../types';
+import { Flashcard } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 // Get API key from environment
