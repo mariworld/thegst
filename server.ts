@@ -582,6 +582,11 @@ You can still create flashcards from these sample resume topics:
   }
 });
 
+// Explicitly handle the auth callback route
+app.get('/auth/callback', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 // Fallback route to serve the SPA
 app.get('*', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
