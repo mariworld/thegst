@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Space, Typography, message, Alert, Divider, Tabs } from 'antd';
 import { supabase } from './lib/supabase';
-import { checkAuthStatus } from './lib/supabase';
 import { useAuth } from './context/AuthContext';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -49,8 +48,8 @@ const DebugAuth: React.FC = () => {
   const testRLS = async () => {
     setLoading(true);
     const results = {
-      select: { success: false, error: null, data: null },
-      insert: { success: false, error: null, data: null },
+      select: { success: false, error: null as string | null, data: null as any[] | null },
+      insert: { success: false, error: null as string | null, data: null as any[] | null },
       auth: { contextAvailable: !!auth.user, authUser: auth.user?.id || 'none' }
     };
     
@@ -103,7 +102,7 @@ const DebugAuth: React.FC = () => {
           await supabase.from('chats').delete().eq('id', testId);
         }
       } else {
-        results.insert.error = 'Test skipped - no authenticated user';
+        results.insert.error = 'Test skipped - no authenticated user' as string;
       }
       
       setTestResults(results);
@@ -262,7 +261,6 @@ const DebugAuth: React.FC = () => {
   const testChatDeletion = async () => {
     try {
       // Get the current session and user directly
-      const { data: { session } } = await supabase.auth.getSession();
       const { data: userResponse } = await supabase.auth.getUser();
       
       if (!userResponse?.user?.id) {
@@ -371,7 +369,6 @@ const DebugAuth: React.FC = () => {
   const testCollectionDeletion = async () => {
     try {
       // Get the current session and user directly
-      const { data: { session } } = await supabase.auth.getSession();
       const { data: userResponse } = await supabase.auth.getUser();
       
       if (!userResponse?.user?.id) {

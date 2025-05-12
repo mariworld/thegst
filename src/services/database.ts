@@ -318,7 +318,7 @@ export const createCollection = async (
   const timestamp = formatDatabaseDate(now);
   
   // First, create the collection
-  const { data: collectionData, error: collectionError } = await supabase
+  const { error: collectionError } = await supabase
     .from('collections')
     .insert({
       id,

@@ -43,7 +43,7 @@ export const checkAuthStatus = async () => {
     });
     
     // Test if the auth.uid() matches the user's ID by doing a simple query
-    const { data, error } = await supabase.from('chats').select('count');
+    const { error } = await supabase.from('chats').select('count');
     if (error) {
       console.error('RLS test failed:', error);
     } else {

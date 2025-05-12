@@ -11,7 +11,6 @@ import UserProfile from './UserProfile'
 import { generateFlashcards, chatMessagesToApiMessages } from '../api'
 import { Layout, Typography, Row, Col, Tabs, Button, Alert, message } from 'antd'
 import { useChat } from '../context/ChatContext'
-import { useAuth } from '../context/AuthContext'
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph } = Typography
@@ -25,7 +24,6 @@ function MainApp() {
   const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  const { user } = useAuth();
   const { 
     chats, 
     collections,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Typography, Divider, message, Alert } from 'antd';
-import { GoogleOutlined, UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
+import { GoogleOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
 
 const { Title, Text } = Typography;

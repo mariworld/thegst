@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Button, Card, Avatar, Space, Dropdown, Menu } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 
 const { Title, Text } = Typography;
