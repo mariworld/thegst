@@ -9,14 +9,23 @@ A modern flashcard application that uses AI to automatically generate study mate
 - Save flashcard collections for later review
 - Chat history for context-aware conversations
 - Database persistence with Supabase
+- User authentication with email/password and Google login
+- Each user has access to their own flashcards
 
 ## Setting Up Supabase Integration
 
-This application uses Supabase for database persistence. Follow these steps to set it up:
+This application uses Supabase for database persistence and authentication. Follow these steps to set it up:
 
 1. Create a Supabase account at [https://supabase.com](https://supabase.com)
 2. Create a new project
-3. Set up the following tables in your Supabase database:
+3. Set up authentication:
+   - Go to Authentication > Settings
+   - Set Site URL to your application URL (e.g., http://localhost:3000 for development)
+   - Enable Email provider with "Confirm email" option
+   - Go to Authentication > Providers
+   - Enable Google provider by providing OAuth client ID and secret from Google Cloud Console
+
+4. Set up the following tables in your Supabase database:
 
 ### Database Schema
 
@@ -28,7 +37,7 @@ CREATE TABLE chats (
   date TEXT NOT NULL,
   question TEXT NOT NULL,
   full_answer TEXT,
-  user_id UUID,
+  user_id UUID REFERENCES auth.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -53,8 +62,8 @@ CREATE TABLE collections (
   id UUID PRIMARY KEY,
   title TEXT NOT NULL,
   date TEXT NOT NULL,
-  source UUID REFERENCES chats(id) ON DELETE SET NULL,
-  user_id UUID,
+  source TEXT,
+  user_id UUID REFERENCES auth.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -71,6 +80,26 @@ CREATE TABLE chat_messages (
 );
 ```
 
+### Setting up Row Level Security (RLS)
+
+To ensure each user can only access their own data, you need to set up Row Level Security:
+
+```sql
+-- Enable Row Level Security on all tables
+ALTER TABLE chats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE flashcards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for the chats table
+CREATE POLICY "Users can view their own chats" 
+  ON chats FOR SELECT 
+  USING (auth.uid() = user_id);
+
+-- Similar policies for other operations and tables
+-- See scripts/auth-migrations.sql for the complete set of policies
+```
+
 ### Setting up the database
 
 You can create these tables in your Supabase project using one of the following methods:
@@ -79,7 +108,7 @@ You can create these tables in your Supabase project using one of the following 
 
 1. Go to your Supabase project dashboard
 2. Click on "SQL Editor" in the left sidebar
-3. Create a new query and paste the contents of `scripts/create-tables.sql`
+3. Create a new query and paste the contents of `scripts/create-tables.sql` and `scripts/auth-migrations.sql`
 4. Click "Run" to execute the SQL commands
 
 #### Method 2: Using the Supabase CLI
@@ -87,11 +116,9 @@ You can create these tables in your Supabase project using one of the following 
 1. Install the Supabase CLI if you haven't already: `npm install -g supabase`
 2. Log in to your Supabase account: `supabase login`
 3. Link your project: `supabase link --project-ref YOUR_PROJECT_ID`
-4. Apply the SQL schema: `supabase db push scripts/create-tables.sql`
+4. Apply the SQL schema: `supabase db push scripts/create-tables.sql scripts/auth-migrations.sql`
 
-Note: After creating the tables, you'll also need to set up Row Level Security (RLS) policies as specified in the `create-tables.sql` file to allow basic operations on your tables.
-
-4. Create a `.env` file in the project root with the following variables:
+5. Create a `.env` file in the project root with the following variables:
 ```
 # OpenAI API key for AI-powered flashcards
 VITE_OPENAI_API_KEY=your_openai_api_key_here
@@ -104,7 +131,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 PORT=3001
 ```
 
-5. Replace `your_supabase_url_here` and `your_supabase_anon_key_here` with the values from your Supabase project settings.
+6. Replace `your_supabase_url_here` and `your_supabase_anon_key_here` with the values from your Supabase project settings.
 
 ## Setup and Installation
 

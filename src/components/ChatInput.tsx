@@ -18,6 +18,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSubmit, isLoading }) => {
   const handleSubmit = () => {
     if (question.trim() && count >= 1 && count <= 10) {
       onSubmit(question, count);
+      setQuestion(''); // Clear the input after submission
+      form.resetFields(['question']); // Reset the form field
     }
   };
 

@@ -62,6 +62,7 @@ interface ChatContextType {
   regenerateFlashcards: (chatId: string, count?: number) => Promise<boolean>;
   deleteChat: (chatId: string) => Promise<boolean>;
   deleteFlashcard: (flashcardId: string, chatId: string) => Promise<boolean>;
+  deleteCollection: (collectionId: string) => Promise<boolean>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -421,6 +422,46 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteCollection = async (collectionId: string): Promise<boolean> => {
+    if (!collectionId) {
+      console.error('Cannot delete collection: Missing collectionId');
+      return false;
+    }
+
+    try {
+      let success = true;
+      
+      // Update the database if connected
+      if (dbConnected) {
+        success = await db.deleteCollection(collectionId);
+      }
+      
+      if (success) {
+        // Update the local state
+        setCollections(prevCollections => prevCollections.filter(collection => collection.id !== collectionId));
+        
+        // If the deleted collection was selected, select another collection or clear the selection
+        if (selectedCollectionId === collectionId) {
+          const remainingCollections = collections.filter(collection => collection.id !== collectionId);
+          if (remainingCollections.length > 0) {
+            await selectCollection(remainingCollections[0].id);
+          } else {
+            setSelectedCollectionId(null);
+            // If no collections left, maybe select a chat
+            if (chats.length > 0) {
+              await selectChat(chats[0].id);
+            }
+          }
+        }
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error deleting collection:', error);
+      return false;
+    }
+  };
+
   const value = {
     chats,
     collections,
@@ -439,7 +480,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     addMessageToHistory,
     regenerateFlashcards,
     deleteChat,
-    deleteFlashcard
+    deleteFlashcard,
+    deleteCollection
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

@@ -23,10 +23,12 @@ interface SidebarProps {
   onSaveCollection?: (chatId: string) => void;
   onCollectionSelect?: (collectionId: string) => void;
   onDeleteChat?: (chatId: string) => void;
+  onDeleteCollection?: (collectionId: string) => void;
   selectedChatId: string | null;
   selectedCollectionId?: string | null;
   collapsed: boolean;
   onCollapse: (collapsed: boolean) => void;
+  headerContent?: React.ReactNode;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -36,10 +38,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   onNewChat,
   onCollectionSelect = () => {},
   onDeleteChat = () => {},
+  onDeleteCollection = () => {},
   selectedChatId,
   selectedCollectionId = null,
   collapsed,
-  onCollapse
+  onCollapse,
+  headerContent
 }) => {
   // State to track which section is expanded
   const [expandedSections, setExpandedSections] = useState({
@@ -127,23 +131,31 @@ const Sidebar: React.FC<SidebarProps> = ({
         height: '100%'
       }}
     >
-      <div 
-        style={{ 
-          padding: collapsed ? '20px 0' : '20px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: collapsed ? 'center' : 'space-between'
-        }}
-      >
-        {!collapsed && (
-          <Title level={4} style={{ color: 'white', margin: 0 }}>
-            GST Flashcards
-          </Title>
-        )}
-        {collapsed && (
-          <MessageOutlined style={{ fontSize: '24px', color: 'white' }} />
-        )}
-        
+      {headerContent ? (
+        <div style={{ padding: collapsed ? '10px 0' : '10px' }}>
+          {headerContent}
+        </div>
+      ) : (
+        <div 
+          style={{ 
+            padding: collapsed ? '20px 0' : '20px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: collapsed ? 'center' : 'space-between'
+          }}
+        >
+          {!collapsed && (
+            <Title level={4} style={{ color: 'white', margin: 0 }}>
+              GST Flashcards
+            </Title>
+          )}
+          {collapsed && (
+            <MessageOutlined style={{ fontSize: '24px', color: 'white' }} />
+          )}
+        </div>
+      )}
+      
+      <div style={{ position: 'absolute', top: collapsed ? '15px' : '20px', right: '16px' }}>
         <Button 
           type="text"
           icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -151,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           style={{ color: 'white', fontSize: '16px' }}
         />
       </div>
-      
+
       <Divider style={{ margin: '0 0 16px 0', borderColor: '#303030' }} />
       
       {/* New Chat Button */}
@@ -267,47 +279,74 @@ const Sidebar: React.FC<SidebarProps> = ({
                   key={collection.id}
                   style={{ 
                     display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'flex-start',
                     padding: '10px 8px',
-                    background: isSelected ? '#1677ff' : 'transparent',
+                    background: isSelected ? '#1f1f1f' : 'transparent',
                     borderRadius: '4px',
                     marginBottom: '6px',
                     cursor: 'pointer'
                   }}
                   onClick={() => onCollectionSelect(collection.id)}
                 >
-                  <FileTextOutlined style={{ 
-                    fontSize: '16px', 
-                    marginRight: '8px',
-                    marginTop: '3px',
-                    color: isSelected ? 'white' : '#9CA3AF' 
-                  }} />
-                  <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    overflow: 'hidden'
-                  }}>
-                    <Text ellipsis style={{ 
-                      color: isSelected ? 'white' : 'white', 
-                      fontSize: '14px', 
-                      marginBottom: '4px' 
+                  <div style={{ display: 'flex', alignItems: 'flex-start', overflow: 'hidden', flex: 1 }}>
+                    <FileTextOutlined style={{ 
+                      fontSize: '16px', 
+                      marginRight: '8px',
+                      marginTop: '3px',
+                      color: isSelected ? '#1677ff' : '#9CA3AF' 
+                    }} />
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      overflow: 'hidden'
                     }}>
-                      {collection.title}
-                    </Text>
-                    <Text style={{ 
-                      color: isSelected ? 'rgba(255, 255, 255, 0.85)' : '#9CA3AF', 
-                      fontSize: '12px' 
-                    }}>
-                      {collection.count} cards
-                    </Text>
-                    <Text style={{ 
-                      color: isSelected ? 'rgba(255, 255, 255, 0.85)' : '#9CA3AF', 
-                      fontSize: '12px', 
-                      marginTop: '4px' 
-                    }}>
-                      {collection.date}
-                    </Text>
+                      <Text ellipsis style={{ 
+                        color: 'white', 
+                        fontSize: '14px', 
+                        marginBottom: '4px' 
+                      }}>
+                        {collection.title}
+                      </Text>
+                      <Text style={{ 
+                        color: '#9CA3AF', 
+                        fontSize: '12px' 
+                      }}>
+                        {collection.count} cards
+                      </Text>
+                      <Text style={{ 
+                        color: '#9CA3AF', 
+                        fontSize: '12px', 
+                        marginTop: '4px' 
+                      }}>
+                        {collection.date}
+                      </Text>
+                    </div>
                   </div>
+                  <Popconfirm
+                    title="Delete this collection?"
+                    description="This will delete the collection and all its flashcards. This cannot be undone."
+                    onConfirm={(e) => {
+                      e?.stopPropagation();
+                      onDeleteCollection(collection.id);
+                      message.success('Collection deleted successfully');
+                    }}
+                    onCancel={(e) => e?.stopPropagation()}
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <Button 
+                      type="text" 
+                      icon={<DeleteOutlined />} 
+                      size="small"
+                      onClick={(e) => e.stopPropagation()} 
+                      style={{ 
+                        color: '#ff4d4f', 
+                        opacity: 0.7, 
+                        visibility: isSelected ? 'visible' : 'hidden'
+                      }}
+                    />
+                  </Popconfirm>
                 </div>
               );
             })

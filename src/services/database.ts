@@ -30,9 +30,19 @@ export interface ChatMessage {
 
 // Chat Operations
 export const fetchChats = async (): Promise<ChatData[]> => {
+  // Get the current session and user directly
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  
+  if (!userId) {
+    console.error('No authenticated user found when trying to fetch chats');
+    return [];
+  }
+  
   const { data: chats, error } = await supabase
     .from('chats')
     .select('*')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
     
   if (error) {
@@ -75,10 +85,32 @@ export const fetchChats = async (): Promise<ChatData[]> => {
 };
 
 export const createChat = async (title: string = 'New Chat'): Promise<ChatData | null> => {
+  // Get the current session and user directly, instead of from getUser()
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  
+  // Log for debugging
+  console.log('Creating chat with user ID:', userId);
+  
+  if (!userId) {
+    console.error('No authenticated user found when trying to create chat');
+    return null;
+  }
+  
   const id = uuidv4();
   const now = new Date();
   const formattedDate = formatDisplayDate(now);
-  const timestamp = formatDatabaseDate(now);
+  const timestamp = now.toISOString(); // Use ISO string for database timestamps
+  
+  // Console log the values for debugging
+  console.log('Creating chat with data:', {
+    id,
+    title,
+    date: formattedDate,
+    userId,
+    created_at: timestamp,
+    updated_at: timestamp
+  });
   
   const { data, error } = await supabase
     .from('chats')
@@ -88,6 +120,7 @@ export const createChat = async (title: string = 'New Chat'): Promise<ChatData |
       date: formattedDate,
       question: '',
       full_answer: null,
+      user_id: userId,
       created_at: timestamp,
       updated_at: timestamp
     })
@@ -139,6 +172,8 @@ export const updateChat = async (
 };
 
 export const deleteChat = async (chatId: string): Promise<boolean> => {
+  console.log('Attempting to delete chat with ID:', chatId);
+  
   // First delete associated flashcards
   const { error: flashcardsError } = await supabase
     .from('flashcards')
@@ -150,16 +185,21 @@ export const deleteChat = async (chatId: string): Promise<boolean> => {
     return false;
   }
   
+  console.log('Successfully deleted flashcards for chat:', chatId);
+  
   // Then delete the chat
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('chats')
     .delete()
-    .eq('id', chatId);
+    .eq('id', chatId)
+    .select();
     
   if (error) {
     console.error('Error deleting chat:', error);
     return false;
   }
+  
+  console.log('Successfully deleted chat from database:', chatId, data);
   
   return true;
 };
@@ -206,9 +246,19 @@ export const saveFlashcards = async (
 
 // Collection Operations
 export const fetchCollections = async (): Promise<CollectionData[]> => {
+  // Get the current session and user directly
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  
+  if (!userId) {
+    console.error('No authenticated user found when trying to fetch collections');
+    return [];
+  }
+  
   const { data: collections, error } = await supabase
     .from('collections')
     .select('*')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
     
   if (error) {
@@ -253,33 +303,43 @@ export const createCollection = async (
   flashcards: Flashcard[],
   source: string | null = null
 ): Promise<CollectionData | null> => {
+  // Get the current session and user directly
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  
+  if (!userId) {
+    console.error('No authenticated user found when trying to create collection');
+    return null;
+  }
+  
   const id = uuidv4();
   const now = new Date();
   const formattedDate = formatDisplayDate(now);
   const timestamp = formatDatabaseDate(now);
   
-  // First create the collection
-  const { data, error } = await supabase
+  // First, create the collection
+  const { data: collectionData, error: collectionError } = await supabase
     .from('collections')
     .insert({
       id,
       title,
       date: formattedDate,
-      source,
+      source: source,
+      user_id: userId,
       created_at: timestamp,
       updated_at: timestamp
     })
     .select()
     .single();
     
-  if (error) {
-    console.error('Error creating collection:', error);
+  if (collectionError) {
+    console.error('Error creating collection:', collectionError);
     return null;
   }
   
-  // Then add the flashcards
-  const flashcardsToInsert = flashcards.map(card => ({
-    id: uuidv4(), // Always generate a new ID to avoid conflicts
+  // Then copy the flashcards and associate them with the collection
+  const flashcardsWithCollectionId = flashcards.map(card => ({
+    id: uuidv4(),
     question: card.question,
     answer: card.answer,
     chat_id: null,
@@ -290,21 +350,19 @@ export const createCollection = async (
   
   const { error: flashcardsError } = await supabase
     .from('flashcards')
-    .insert(flashcardsToInsert);
+    .insert(flashcardsWithCollectionId);
     
   if (flashcardsError) {
     console.error('Error saving flashcards for collection:', flashcardsError);
-    // Delete the collection if we couldn't save the flashcards
-    await supabase.from('collections').delete().eq('id', id);
     return null;
   }
   
   return {
-    id: data.id,
-    title: data.title,
-    date: data.date,
-    flashcards: flashcards,
-    source: data.source || ''
+    id,
+    title,
+    date: formattedDate,
+    flashcards,
+    source: source || ''
   };
 };
 
@@ -314,6 +372,13 @@ export const saveChatMessage = async (
   content: string,
   role: 'user' | 'assistant' | 'system'
 ): Promise<ChatMessage | null> => {
+  // Verify user is authenticated
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user?.id) {
+    console.error('No authenticated user found when trying to save chat message');
+    return null;
+  }
+  
   const id = uuidv4();
   const now = new Date().toISOString();
   
@@ -429,6 +494,39 @@ export const deleteFlashcard = async (flashcardId: string | number | undefined):
     console.error('Error deleting flashcard:', error);
     return false;
   }
+  
+  return true;
+};
+
+export const deleteCollection = async (collectionId: string): Promise<boolean> => {
+  console.log('Attempting to delete collection with ID:', collectionId);
+  
+  // First delete associated flashcards
+  const { error: flashcardsError } = await supabase
+    .from('flashcards')
+    .delete()
+    .eq('collection_id', collectionId);
+    
+  if (flashcardsError) {
+    console.error('Error deleting flashcards for collection:', flashcardsError);
+    return false;
+  }
+  
+  console.log('Successfully deleted flashcards for collection:', collectionId);
+  
+  // Then delete the collection
+  const { data, error } = await supabase
+    .from('collections')
+    .delete()
+    .eq('id', collectionId)
+    .select();
+    
+  if (error) {
+    console.error('Error deleting collection:', error);
+    return false;
+  }
+  
+  console.log('Successfully deleted collection from database:', collectionId, data);
   
   return true;
 }; 
