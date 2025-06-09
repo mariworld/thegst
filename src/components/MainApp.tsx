@@ -25,7 +25,6 @@ function MainApp() {
   const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [screenWidth, setScreenWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 992)
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 576 : false)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
@@ -67,7 +66,6 @@ function MainApp() {
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth
-      setScreenWidth(width)
       setIsMobile(width <= 576)
       
       if (width <= 768) {

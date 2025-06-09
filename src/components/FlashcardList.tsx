@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Typography, Card, Tabs, Row, Col, Space, message, Skeleton } from 'antd';
+import { Button, Card, Tabs, Row, Col, message, Skeleton } from 'antd';
 import { ReloadOutlined, RedoOutlined } from '@ant-design/icons';
 import { Flashcard as FlashcardType } from '../types';
 import Flashcard from './Flashcard';
 import { useChat } from '../context/ChatContext';
 
-const { Paragraph } = Typography;
+
 
 interface FlashcardListProps {
   cards: FlashcardType[];

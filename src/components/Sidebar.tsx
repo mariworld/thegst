@@ -9,7 +9,6 @@ import {
   FolderOutlined,
   StarOutlined,
   DeleteOutlined,
-  CloseOutlined,
   LeftOutlined
 } from '@ant-design/icons';
 import { Chat, FlashcardCollection } from '../context/ChatContext';
