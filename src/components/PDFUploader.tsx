@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Button, message, Typography, Spin, Divider, Space } from 'antd';
 import { UploadOutlined, FilePdfOutlined, BugOutlined } from '@ant-design/icons';
-import type { UploadProps, UploadFile } from 'antd';
+import type { UploadProps } from 'antd';
 
 const { Dragger } = Upload;
 const { Text, Title, Paragraph } = Typography;
@@ -12,7 +12,6 @@ interface PDFUploaderProps {
 
 const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -133,32 +132,8 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
   };
 
   const props: UploadProps = {
-    name: 'file',
     multiple: false,
     accept: '.pdf',
-    fileList,
-    onChange(info) {
-      const { status } = info.file;
-      
-      setFileList(info.fileList.slice(-1)); // Only keep the last uploaded file
-      addLog(`File upload status changed: ${status || 'unknown'}`);
-
-      if (status === 'uploading') {
-        setIsLoading(true);
-        addLog('File is uploading...');
-        return;
-      }
-      
-      if (status === 'done') {
-        message.success(`${info.file.name} uploaded successfully.`);
-        setIsLoading(false);
-        addLog('File was uploaded successfully.');
-      } else if (status === 'error') {
-        message.error(`${info.file.name} upload failed.`);
-        setIsLoading(false);
-        addLog('File upload failed with error status.');
-      }
-    },
     beforeUpload(file) {
       addLog(`Before upload with file type: ${file.type}`);
       // Instead of using Upload's built-in mechanism, we handle the file ourselves
@@ -167,13 +142,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
       }, 0);
       return false; // Prevent default upload behavior
     },
-    itemRender: (originNode) => (
-      <div style={{color: 'white'}}>{originNode}</div>
-    ),
-    showUploadList: {
-      showRemoveIcon: true,
-      removeIcon: <span style={{color: 'white'}}>Remove</span>
-    }
+    showUploadList: false, // Disable file list since we handle everything manually
   };
 
   return (
