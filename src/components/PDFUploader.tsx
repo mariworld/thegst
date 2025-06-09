@@ -53,7 +53,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
           addLog('Sending to server...');
           
           // Send to server - update URL to use port 3001 where the backend is running
-          const response = await fetch('http://localhost:3001/api/extract-pdf', {
+          const response = await fetch('/api/extract-pdf', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
