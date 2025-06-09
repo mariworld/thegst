@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Typography, Card, Tabs, Row, Col, Space, message, Skeleton } from 'antd';
 import { ReloadOutlined, RedoOutlined } from '@ant-design/icons';
 import { Flashcard as FlashcardType } from '../types';
@@ -28,7 +28,22 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('flashcards');
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 576 : false);
   const { createNewChat, selectedChatId, regenerateFlashcards, deleteFlashcard } = useChat();
+
+  // Check if we're on a mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 576);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   const handleNewChat = () => {
     createNewChat();
@@ -82,7 +97,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
     // Create an array of 4 skeleton cards (or match the number of existing cards if any)
     const skeletonCount = cards.length > 0 ? cards.length : 4;
     return Array(skeletonCount).fill(0).map((_, index) => (
-      <Col xs={24} md={12} key={`skeleton-${index}`} className="flashcard-col">
+      <Col xs={24} sm={24} md={12} key={`skeleton-${index}`} className="flashcard-col">
         <div className="flashcard-card">
           <Card
             style={{ 
@@ -96,9 +111,9 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
               paddingTop: '8px'
             }}
             bodyStyle={{ 
-              padding: '24px 20px',
+              padding: isMobile ? '16px 12px' : '24px 20px',
               height: '100%',
-              minHeight: '180px',
+              minHeight: isMobile ? '160px' : '180px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between'
@@ -157,12 +172,12 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
 
       {activeTab === 'flashcards' && (
         <div className="flashcards-container">
-          <Row gutter={[24, 24]} className="flashcards-row">
+          <Row gutter={[16, 24]} className="flashcards-row">
             {showLoadingState ? (
               renderSkeletonCards()
             ) : (
               cards.map((card) => (
-                <Col xs={24} md={12} key={card.id} className="flashcard-col">
+                <Col xs={24} sm={24} md={12} key={card.id} className="flashcard-col">
                   <div className="flashcard-card">
                     <Flashcard 
                       card={card} 
@@ -174,110 +189,67 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
             )}
           </Row>
 
-          <div style={{ marginTop: '32px', textAlign: 'center', paddingBottom: '24px' }}>
-            <Space>
+          <div style={{ 
+            marginTop: '32px', 
+            textAlign: 'center', 
+            paddingBottom: '24px',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            justifyContent: 'center',
+            gap: isMobile ? '12px' : '8px'
+          }}>
+            <Button 
+              type="default" 
+              icon={<ReloadOutlined />} 
+              onClick={handleNewChat}
+              style={{ 
+                background: '#2a2a2a', 
+                borderColor: '#303030', 
+                color: 'white',
+                height: isMobile ? '40px' : '44px',
+                fontSize: isMobile ? '14px' : '16px',
+                padding: isMobile ? '0 16px' : '0 24px',
+                width: isMobile ? '100%' : 'auto'
+              }}
+            >
+              New Chat
+            </Button>
+            
+            {showFullAnswer && (
               <Button 
                 type="default" 
-                icon={<ReloadOutlined />} 
-                onClick={handleNewChat}
+                icon={<RedoOutlined spin={isRegenerating} />} 
+                onClick={handleRegenerateClick}
+                loading={isRegenerating}
                 style={{ 
                   background: '#2a2a2a', 
                   borderColor: '#303030', 
                   color: 'white',
-                  height: '44px',
-                  fontSize: '16px',
-                  padding: '0 24px'
+                  height: isMobile ? '40px' : '44px',
+                  fontSize: isMobile ? '14px' : '16px',
+                  padding: isMobile ? '0 16px' : '0 24px',
+                  width: isMobile ? '100%' : 'auto'
                 }}
               >
-                New Chat
+                Regenerate
               </Button>
-              
-              {showFullAnswer && (
-                <Button 
-                  type="default" 
-                  icon={<RedoOutlined spin={isRegenerating} />} 
-                  onClick={handleRegenerateClick}
-                  loading={isRegenerating}
-                  style={{ 
-                    background: '#2a2a2a', 
-                    borderColor: '#303030', 
-                    color: 'white',
-                    height: '44px',
-                    fontSize: '16px',
-                    padding: '0 24px'
-                  }}
-                >
-                  Regenerate Flashcards
-                </Button>
-              )}
-            </Space>
+            )}
           </div>
         </div>
       )}
 
       {activeTab === 'fullAnswer' && (
-        <div className="flashcards-container">
-          <Card 
-            style={{ 
-              background: '#2a2a2a', 
-              border: '1px solid #303030',
-              borderRadius: '12px',
-              marginBottom: '24px',
-              padding: '16px'
-            }}
-          >
-            {isLoading ? (
-              <Skeleton active paragraph={{ rows: 10 }} />
-            ) : (
-              <Paragraph style={{ 
-                color: 'white', 
-                whiteSpace: 'pre-wrap',
-                fontSize: '1rem',
-                lineHeight: '1.6'
-              }}>
-                {fullAnswer}
-              </Paragraph>
-            )}
-          </Card>
-
-          <div style={{ marginTop: '32px', textAlign: 'center', paddingBottom: '24px' }}>
-            <Space>
-              <Button 
-                type="default" 
-                icon={<ReloadOutlined />} 
-                onClick={handleNewChat}
-                style={{ 
-                  background: '#2a2a2a', 
-                  borderColor: '#303030', 
-                  color: 'white',
-                  height: '44px',
-                  fontSize: '16px',
-                  padding: '0 24px'
-                }}
-              >
-                New Chat
-              </Button>
-              
-              {showFullAnswer && (
-                <Button 
-                  type="default" 
-                  icon={<RedoOutlined spin={isRegenerating} />} 
-                  onClick={handleRegenerateClick}
-                  loading={isRegenerating}
-                  style={{ 
-                    background: '#2a2a2a', 
-                    borderColor: '#303030', 
-                    color: 'white',
-                    height: '44px',
-                    fontSize: '16px',
-                    padding: '0 24px'
-                  }}
-                >
-                  Regenerate Flashcards
-                </Button>
-              )}
-            </Space>
-          </div>
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: isMobile ? '16px 12px' : '24px',
+          background: '#1a1a1a',
+          borderRadius: '8px',
+          color: '#e1e1e1',
+          fontSize: isMobile ? '14px' : '16px',
+          whiteSpace: 'pre-wrap'
+        }}>
+          {fullAnswer}
         </div>
       )}
     </div>

@@ -52,8 +52,8 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
           addLog(`File binary size: ${binary.length}`);
           addLog('Sending to server...');
           
-          // Send to server - update URL to use port 3001 where the backend is running
-          const response = await fetch('http://localhost:3001/api/extract-pdf', {
+          // Use relative URL that works with Vite proxy in dev and production API endpoint
+          const response = await fetch('/api/extract-pdf', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
   const handleTestApi = async () => {
     try {
       addLog('Testing API connection...');
-      const response = await fetch('http://localhost:3001/api/test');
+      const response = await fetch('/api/test');
       const data = await response.json();
       addLog(`API test response: ${JSON.stringify(data)}`);
       

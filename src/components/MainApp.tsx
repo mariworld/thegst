@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Flashcard as FlashcardType, ChatResponse } from '../types'
 import ChatInput from './ChatInput'
 import FlashcardList from './FlashcardList'
@@ -11,6 +11,7 @@ import UserProfile from './UserProfile'
 import { generateFlashcards, chatMessagesToApiMessages } from '../api'
 import { Layout, Typography, Row, Col, Tabs, Button, Alert, message } from 'antd'
 import { useChat } from '../context/ChatContext'
+import { MenuOutlined } from '@ant-design/icons'
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph } = Typography
@@ -23,6 +24,10 @@ function MainApp() {
   const [model, setModel] = useState<string>('gpt-3.5-turbo')
   const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [screenWidth, setScreenWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 992)
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 576 : false)
+  const sidebarRef = useRef<HTMLDivElement>(null)
 
   const { 
     chats, 
@@ -43,6 +48,46 @@ function MainApp() {
     deleteChat,
     deleteCollection
   } = useChat()
+
+  // Handle clicks outside the sidebar to close it on mobile
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node) && isMobile) {
+        setMobileOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMobile])
+
+  // Check device width and auto-collapse on small screens
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth
+      setScreenWidth(width)
+      setIsMobile(width <= 576)
+      
+      if (width <= 768) {
+        setSidebarCollapsed(true)
+      }
+      
+      // Ensure sidebar is initially closed on mobile
+      if (width <= 576) {
+        setMobileOpen(false)
+      }
+    }
+
+    // Initial check
+    handleResize()
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
 
   // Initialize with a new chat if none exists
   useEffect(() => {
@@ -249,6 +294,16 @@ PDF content: ${content.substring(0, 1000)}...`
     ? `Collection: ${getCollection(selectedCollectionId)?.title || 'Untitled'}`
     : 'Your Flashcards';
 
+  // Toggle mobile sidebar
+  const toggleMobileSidebar = () => {
+    setMobileOpen(!mobileOpen)
+
+    // When opening sidebar on mobile, make sure it's not collapsed
+    if (!mobileOpen && isMobile) {
+      setSidebarCollapsed(false)
+    }
+  }
+
   if (contextLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -260,30 +315,99 @@ PDF content: ${content.substring(0, 1000)}...`
    
   return (
     <Layout className="app-container">
-      <Sidebar 
-        chats={sidebarChats} 
-        collections={sidebarCollections}
-        onChatSelect={handleChatSelect} 
-        onCollectionSelect={handleCollectionSelect}
-        onNewChat={handleNewChat} 
-        onSaveCollection={handleSaveCollection}
-        onDeleteChat={handleChatDelete}
-        onDeleteCollection={handleCollectionDelete}
-        selectedChatId={selectedChatId}
-        selectedCollectionId={selectedCollectionId}
-        collapsed={sidebarCollapsed}
-        onCollapse={setSidebarCollapsed}
-        headerContent={<UserProfile collapsed={sidebarCollapsed} />}
-      />
+      {/* Mobile menu toggle */}
+      {isMobile && (
+        <div 
+          className="mobile-menu-toggle" 
+          onClick={toggleMobileSidebar}
+          style={{
+            left: mobileOpen ? '-50px' : '12px',
+            transition: 'left 0.3s ease'
+          }}
+        >
+          <MenuOutlined style={{ fontSize: '20px', color: 'white' }} />
+        </div>
+      )}
+      
+      {/* Mobile overlay */}
+      {isMobile && (
+        <div 
+          className={`mobile-sidebar-overlay ${mobileOpen ? 'visible' : ''}`}
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+      
+      <div ref={sidebarRef}>
+        <Sidebar 
+          chats={sidebarChats} 
+          collections={sidebarCollections}
+          onChatSelect={(id) => {
+            handleChatSelect(id)
+            // Auto-close sidebar on mobile after selection
+            if (isMobile) {
+              setMobileOpen(false)
+            }
+          }} 
+          onCollectionSelect={(id) => {
+            handleCollectionSelect(id)
+            // Auto-close sidebar on mobile after selection
+            if (isMobile) {
+              setMobileOpen(false)
+            }
+          }}
+          onNewChat={() => {
+            handleNewChat()
+            // Auto-close sidebar on mobile after creating a new chat
+            if (isMobile) {
+              setMobileOpen(false)
+            }
+          }}
+          onSaveCollection={handleSaveCollection}
+          onDeleteChat={handleChatDelete}
+          onDeleteCollection={handleCollectionDelete}
+          selectedChatId={selectedChatId}
+          selectedCollectionId={selectedCollectionId}
+          collapsed={sidebarCollapsed}
+          onCollapse={(collapsed) => {
+            // On mobile, toggle should control visibility 
+            if (isMobile) {
+              setMobileOpen(false)
+            } else {
+              setSidebarCollapsed(collapsed)
+            }
+          }}
+          headerContent={<UserProfile collapsed={sidebarCollapsed && !isMobile} />}
+          mobileOpen={mobileOpen}
+          isMobile={isMobile}
+        />
+      </div>
 
       <Layout 
-        className="site-layout"
-        style={{ marginLeft: sidebarCollapsed ? '80px' : '280px' }}
+        className={`site-layout ${mobileOpen ? 'sidebar-open' : ''}`}
+        style={{ 
+          marginLeft: isMobile ? 0 : (sidebarCollapsed ? '80px' : '280px'),
+          transition: 'margin-left 0.3s ease, transform 0.3s ease'
+        }}
       >
         <Header className="site-header">
-          <Title level={1} style={{ textAlign: 'center', color: 'white', margin: 0, fontSize: '2rem' }}>
-            The GST: AI Flashcard Generator
-          </Title>
+          <div style={{ width: '100%', margin: '0 auto', textAlign: 'center' }}>
+            <Title 
+              level={1} 
+              className="app-title"
+              style={{ 
+                textAlign: 'center', 
+                color: 'white', 
+                margin: '0 auto', 
+                fontSize: isMobile ? '1.4rem' : '2rem',
+                writingMode: 'horizontal-tb',
+                textOrientation: 'mixed',
+                whiteSpace: 'normal',
+                display: 'block'
+              }}
+            >
+              The GST: AI Flashcard Generator
+            </Title>
+          </div>
         </Header>
 
         <Content className="site-content">
@@ -392,13 +516,13 @@ PDF content: ${content.substring(0, 1000)}...`
             
             <Col xs={24} lg={14}>
               <div className="flashcards-container">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
                   <Title level={2} style={{ margin: 0, color: 'white', fontSize: '1.5rem' }}>
                     {currentViewTitle}
                   </Title>
                   
                   {flashcards.length > 0 && (
-                    <div>
+                    <div style={{ marginTop: isMobile ? '10px' : 0 }}>
                       {selectedChatId && !selectedCollectionId && (
                         <Button 
                           onClick={() => handleSaveCollection(selectedChatId)}
