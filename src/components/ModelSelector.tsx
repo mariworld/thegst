@@ -67,7 +67,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
       >
         {models.map(model => (
           <Option key={model.value} value={model.value}>
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
               <Text style={{ color: '#000000' }}>{model.name}</Text>
               <Text style={{ color: '#666666', marginLeft: '8px', fontSize: '0.8rem' }}>
                 ({model.description})
