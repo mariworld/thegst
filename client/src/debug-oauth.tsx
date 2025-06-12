@@ -4,8 +4,22 @@ import { supabase } from './lib/supabase';
 
 const { Title, Text, Paragraph } = Typography;
 
+interface DebugInfo {
+  currentUrl?: string;
+  redirectUrl?: string;
+  supabaseUrl?: string;
+  userAgent?: string;
+  timestamp?: string;
+  error?: string;
+  sessionError?: string;
+  success?: boolean;
+  sessionExists?: boolean;
+  userId?: string;
+  userEmail?: string;
+}
+
 const DebugOAuth: React.FC = () => {
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [loading, setLoading] = useState(false);
 
   const testOAuthFlow = async () => {
@@ -30,7 +44,7 @@ const DebugOAuth: React.FC = () => {
       // Test the OAuth initiation
       console.log('Initiating Google OAuth...');
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,

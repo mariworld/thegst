@@ -36,7 +36,6 @@ const AuthCallback = () => {
 
         // Check if we have OAuth tokens in the URL hash (Supabase OAuth callback format)
         const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
         
         if (accessToken) {
           console.log('Found OAuth tokens in URL, processing...');
