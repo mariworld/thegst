@@ -63,12 +63,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signInWithGoogle = async () => {
-    // Get the production URL for Render deployment
-    const isProd = window.location.hostname !== 'localhost';
-    const redirectUrl = isProd
-      ? 'https://thegst.onrender.com/auth/callback'
-      : `${window.location.origin}/auth/callback`;
-      
+    // Use the current domain for the redirect URL
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

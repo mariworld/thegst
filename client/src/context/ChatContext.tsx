@@ -206,7 +206,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         if (data.question) dbData.question = data.question;
         if (data.fullAnswer) dbData.fullAnswer = data.fullAnswer;
         
-        const result = await db.updateChat(chatId, dbData);
         
         // If we have flashcards, save them too
         if (data.flashcards) {
