@@ -1,6 +1,6 @@
 # GST Flashcard Generator 
 An AI-powered flashcard generation application that creates study materials from text questions or PDF uploads using OpenAI's GPT models.
-[LINK TO DEPOLYED APP](thegst-beta.vercel.app)
+DEMO the app @ thegst-beta.vercel.app
 
 ## Features
 
