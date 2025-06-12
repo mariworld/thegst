@@ -1,11 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
 
+// Debugging: Log the environment variables to verify they are loaded.
+console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Loaded' : 'Not Loaded');
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase credentials. Please check your .env file');
+  console.error('Missing Supabase credentials. Please check your Vercel environment variables.');
+  // Provide a more helpful error for the developer.
+  alert('Supabase credentials are not configured. The application will not work. Please check the Vercel deployment settings.');
 }
 
 export const supabase = createClient<Database>(
