@@ -1,0 +1,20 @@
+{
+  "buildCommand": "npm ci && npm run build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server/src/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "server/src/server.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
+} 

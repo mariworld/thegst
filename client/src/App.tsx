@@ -5,6 +5,7 @@ import AuthCallback from './components/Auth/AuthCallback'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
 import { MainApp } from './components'
 import DebugAuth from './debug-auth'
+import DebugOAuth from './debug-oauth'
 import './styles/App.css'
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
           <DebugAuth />
         </ProtectedRoute>
       } />
+      <Route path="/debug-oauth" element={<DebugOAuth />} />
       <Route path="/" element={
         <ProtectedRoute>
           <MainApp />
