@@ -64,10 +64,19 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
         throw new Error('No text was extracted from the PDF');
       }
       
-      addLog('Text sample: ' + data.extractedText.substring(0, 50) + '...');
+      // Check if it's fallback content vs actual extraction
+      const isFallbackContent = data.extractedText.includes('PDF Upload Successful - Flashcard Generation Ready');
+      
+      if (isFallbackContent) {
+        addLog('Using sample content (PDF text extraction in progress)');
+        message.warning('PDF uploaded successfully! Using sample content for demonstration. Working to improve PDF text extraction.');
+      } else {
+        addLog('Text sample: ' + data.extractedText.substring(0, 100) + '...');
+        message.success('PDF text extracted successfully!');
+      }
+      
       onPDFContent(data.extractedText);
       addLog('PDF content processed successfully');
-      message.success('PDF processed successfully!');
       
     } catch (error) {
       console.error('Error processing PDF:', error);

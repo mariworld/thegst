@@ -1,22 +1,95 @@
+import PDFParser from 'pdf2json';
+
 export class PDFService {
   constructor() {
-    // Simple service for PDF text extraction with fallback
+    // Service for PDF text extraction with fallback
   }
 
   async extractTextFromBase64(base64Data: string): Promise<string> {
-    console.log('PDF extraction requested with base64 data');
-    
-    // For now, always return fallback content due to serverless limitations
-    console.log('Using fallback content due to serverless environment limitations');
-    return this.getFallbackContent();
+    try {
+      // Validate input
+      if (!base64Data.startsWith('data:application/pdf;base64,')) {
+        throw new Error('PDF data must be in base64 format');
+      }
+      
+      // Extract the base64 data
+      const cleanBase64 = base64Data.replace(/^data:application\/pdf;base64,/, '');
+      const dataBuffer = Buffer.from(cleanBase64, 'base64');
+      
+      return await this.extractTextFromBuffer(dataBuffer);
+    } catch (error) {
+      console.error('Error in base64 PDF extraction:', error);
+      console.log('Using fallback content due to extraction error');
+      return this.getFallbackContent();
+    }
   }
 
   async extractTextFromBuffer(buffer: Buffer): Promise<string> {
-    console.log('PDF extraction requested with buffer, size:', buffer.length);
+    console.log('Attempting to extract text from PDF buffer, size:', buffer.length);
     
-    // For now, always return fallback content due to serverless limitations
-    console.log('Using fallback content due to serverless environment limitations');
-    return this.getFallbackContent();
+    try {
+      const extractedText = await this.parsePDFWithJson(buffer);
+      
+      if (extractedText && extractedText.trim().length > 50) {
+        console.log('Successfully extracted text from PDF:', extractedText.length, 'characters');
+        return extractedText;
+      } else {
+        console.log('No meaningful text extracted, using fallback');
+        return this.getFallbackContent();
+      }
+    } catch (error) {
+      console.error('PDF extraction failed:', error);
+      console.log('Using fallback content due to extraction failure');
+      return this.getFallbackContent();
+    }
+  }
+
+  private async parsePDFWithJson(buffer: Buffer): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const pdfParser = new (PDFParser as any)();
+      
+      let extractedText = '';
+      
+      pdfParser.on('pdfParser_dataError', (errData: any) => {
+        console.error('PDF parsing error:', errData);
+        reject(new Error(`PDF parsing failed: ${errData.parserError}`));
+      });
+      
+      pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+        try {
+          console.log('PDF parsed successfully, processing text...');
+          
+          // Extract text from all pages
+          if (pdfData.Pages && Array.isArray(pdfData.Pages)) {
+            for (const page of pdfData.Pages) {
+              if (page.Texts && Array.isArray(page.Texts)) {
+                for (const textItem of page.Texts) {
+                  if (textItem.R && Array.isArray(textItem.R)) {
+                    for (const textRun of textItem.R) {
+                      if (textRun.T) {
+                        // Decode URI component to get actual text
+                        const decodedText = decodeURIComponent(textRun.T);
+                        extractedText += decodedText + ' ';
+                      }
+                    }
+                  }
+                }
+                extractedText += '\n'; // Add line break between text blocks
+              }
+            }
+          }
+          
+          console.log('Text extraction complete, length:', extractedText.length);
+          resolve(extractedText.trim());
+        } catch (processError) {
+          console.error('Error processing PDF data:', processError);
+          reject(processError);
+        }
+      });
+      
+      // Parse the PDF buffer
+      pdfParser.parseBuffer(buffer);
+    });
   }
 
   private getFallbackContent(): string {
