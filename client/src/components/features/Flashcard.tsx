@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Typography, Badge, Popconfirm } from 'antd';
 import { SyncOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Flashcard as FlashcardType } from '../types';
+import { Flashcard as FlashcardType } from '../../types';
 
 const { Paragraph, Text } = Typography;
 

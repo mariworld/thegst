@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get the production URL for Render deployment
     const isProd = window.location.hostname !== 'localhost';
     const redirectUrl = isProd
-      ? 'https://thegst.onrender.com/auth/callback'
+      ? 'https://thegst-beta.vercel.app/auth/callback'
       : `${window.location.origin}/auth/callback`;
       
     await supabase.auth.signInWithOAuth({
