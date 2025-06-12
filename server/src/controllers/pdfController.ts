@@ -12,20 +12,24 @@ export class PDFController {
     console.log('PDF extraction endpoint hit');
     
     try {
-      // Check if we have PDF data in the request
-      if (!req.body || !req.body.pdfData) {
-        console.log('No PDF data found in request');
+      // Check if we have a file uploaded
+      const file = (req as any).file;
+      if (!file) {
+        console.log('No PDF file found in request');
         return res.status(400).json({
           success: false,
-          message: 'No PDF data found in request'
+          message: 'No PDF file found in request'
         });
       }
 
-      const { pdfData } = req.body;
-      console.log('Received PDF data of length:', pdfData.length);
+      console.log('Received PDF file:', {
+        filename: file.originalname,
+        size: file.size,
+        mimetype: file.mimetype
+      });
       
       try {
-        const extractedText = await this.pdfService.extractTextFromBase64(pdfData);
+        const extractedText = await this.pdfService.extractTextFromBuffer(file.buffer);
         
         return res.status(200).json({
           success: true,

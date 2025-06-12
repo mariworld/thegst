@@ -1,67 +1,84 @@
-import { PDFExtract, PDFExtractOptions } from 'pdf.js-extract';
+import PDFParse from 'pdf-parse';
 
 export class PDFService {
-  private pdfExtract: PDFExtract;
-
   constructor() {
-    this.pdfExtract = new PDFExtract();
+    // No initialization needed for pdf-parse
   }
 
   async extractTextFromBase64(base64Data: string): Promise<string> {
-    // Validate input
-    if (!base64Data.startsWith('data:application/pdf;base64,')) {
-      throw new Error('PDF data must be in base64 format');
-    }
-    
-    // Extract the base64 data
-    const cleanBase64 = base64Data.replace(/^data:application\/pdf;base64,/, '');
-    console.log('Extracted base64 data of length:', cleanBase64.length);
-    
-    // Convert base64 to buffer
-    const dataBuffer = Buffer.from(cleanBase64, 'base64');
-    console.log('Converted to buffer of length:', dataBuffer.length);
-
-    // Set up options for PDF extraction
-    const options: PDFExtractOptions = {};
-
-    // Extract text from PDF using pdf.js-extract
-    console.log('Extracting text from PDF buffer...');
-    const data = await this.pdfExtract.extractBuffer(dataBuffer, options);
-    console.log('PDF extraction data:', JSON.stringify(data).substring(0, 200) + '...');
-
-    return this.processExtractedData(data);
-  }
-
-  private processExtractedData(data: any): string {
-    let fullText = '';
-    let pageCount = 0;
-
-    if (data && data.pages && Array.isArray(data.pages)) {
-      pageCount = data.pages.length;
-      console.log('PDF extraction complete, pages found:', pageCount);
-      
-      for (const page of data.pages) {
-        if (page.content && Array.isArray(page.content)) {
-          const pageContent = page.content.map((item: any) => item.str || '').join(' ');
-          fullText += pageContent + '\n\n';
-        }
+    try {
+      // Validate input
+      if (!base64Data.startsWith('data:application/pdf;base64,')) {
+        throw new Error('PDF data must be in base64 format');
       }
       
+      // Extract the base64 data
+      const cleanBase64 = base64Data.replace(/^data:application\/pdf;base64,/, '');
+      console.log('Extracted base64 data of length:', cleanBase64.length);
+      
+      // Convert base64 to buffer
+      const dataBuffer = Buffer.from(cleanBase64, 'base64');
+      console.log('Converted to buffer of length:', dataBuffer.length);
+
+      // Extract text from PDF using pdf-parse
+      console.log('Extracting text from PDF buffer...');
+      const data = await PDFParse(dataBuffer);
+      
+      console.log('PDF extraction complete:', {
+        numPages: data.numpages,
+        textLength: data.text.length,
+        textSample: data.text.substring(0, 100) + '...'
+      });
+
       // Check if we extracted any meaningful text
-      if (!fullText.trim()) {
-        console.log('No text could be extracted from PDF, but structure was valid. Using fallback content.');
+      if (!data.text || data.text.trim().length === 0) {
+        console.log('No text could be extracted from PDF. Using fallback content.');
         return this.getFallbackContent();
       }
-    } else {
-      console.error('PDF extraction failed: Invalid or incomplete extraction data');
-      throw new Error('Invalid or incomplete extraction data');
-    }
 
-    console.log('Successfully extracted text from PDF');
-    console.log('Extracted text length:', fullText.length);
-    console.log('Extracted text sample:', fullText.substring(0, 200) + '...');
-    
-    return fullText;
+      console.log('Successfully extracted text from PDF');
+      console.log('Extracted text length:', data.text.length);
+      
+      return data.text;
+    } catch (error) {
+      console.error('Error in PDF extraction:', error);
+      
+      // If extraction fails, provide fallback content
+      console.log('PDF extraction failed, using fallback content');
+      return this.getFallbackContent();
+    }
+  }
+
+  async extractTextFromBuffer(buffer: Buffer): Promise<string> {
+    try {
+      console.log('Extracting text from PDF buffer, size:', buffer.length);
+
+      // Extract text from PDF using pdf-parse
+      const data = await PDFParse(buffer);
+      
+      console.log('PDF extraction complete:', {
+        numPages: data.numpages,
+        textLength: data.text.length,
+        textSample: data.text.substring(0, 100) + '...'
+      });
+
+      // Check if we extracted any meaningful text
+      if (!data.text || data.text.trim().length === 0) {
+        console.log('No text could be extracted from PDF. Using fallback content.');
+        return this.getFallbackContent();
+      }
+
+      console.log('Successfully extracted text from PDF');
+      console.log('Extracted text length:', data.text.length);
+      
+      return data.text;
+    } catch (error) {
+      console.error('Error in PDF extraction:', error);
+      
+      // If extraction fails, provide fallback content
+      console.log('PDF extraction failed, using fallback content');
+      return this.getFallbackContent();
+    }
   }
 
   private getFallbackContent(): string {

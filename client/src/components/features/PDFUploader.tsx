@@ -36,73 +36,44 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
     }
     
     try {
-      // Read the file
-      const reader = new FileReader();
+      addLog('Preparing file for upload...');
       
-      reader.onload = async (e) => {
-        try {
-          addLog('File read complete');
-          const binary = e.target?.result as string;
-          
-          if (!binary) {
-            throw new Error('Failed to read file data');
-          }
-          
-          addLog(`File binary size: ${binary.length}`);
-          addLog('Sending to server...');
-          
-          // Use relative URL that works with Vite proxy in dev and production API endpoint
-          const response = await fetch('/api/extract-pdf', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              pdfData: binary 
-            }),
-          });
-          
-          addLog(`Server response status: ${response.status}`);
-          
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to extract PDF content: ${response.status} ${response.statusText}. Details: ${errorText}`);
-          }
-          
-          const data = await response.json();
-          addLog(`Extracted ${data.extractedText?.length || 0} characters of text`);
-          
-          if (!data.extractedText || data.extractedText.length === 0) {
-            throw new Error('No text was extracted from the PDF');
-          }
-          
-          addLog('Text sample: ' + data.extractedText.substring(0, 50) + '...');
-          onPDFContent(data.extractedText);
-          addLog('PDF content processed successfully');
-          message.success('PDF processed successfully!');
-          
-        } catch (error) {
-          console.error('Error processing PDF:', error);
-          addLog(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          message.error('Failed to process PDF. Please try again.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
+      const formData = new FormData();
+      formData.append('pdf', file);
       
-      reader.onerror = (error) => {
-        console.error('Error reading file:', error);
-        addLog(`File read error: ${error}`);
-        message.error('Failed to read the file');
-        setIsLoading(false);
-      };
+      addLog(`File size: ${file.size} bytes`);
+      addLog('Sending to server...');
       
-      // Read as data URL to get base64 encoding
-      addLog('Starting file read as Data URL...');
-      reader.readAsDataURL(file);
+      // Use relative URL that works with Vite proxy in dev and production API endpoint
+      const response = await fetch('/api/extract-pdf', {
+        method: 'POST',
+        body: formData, // Send FormData directly, no Content-Type header needed
+      });
+        
+      addLog(`Server response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to extract PDF content: ${response.status} ${response.statusText}. Details: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      addLog(`Extracted ${data.extractedText?.length || 0} characters of text`);
+      
+      if (!data.extractedText || data.extractedText.length === 0) {
+        throw new Error('No text was extracted from the PDF');
+      }
+      
+      addLog('Text sample: ' + data.extractedText.substring(0, 50) + '...');
+      onPDFContent(data.extractedText);
+      addLog('PDF content processed successfully');
+      message.success('PDF processed successfully!');
+      
     } catch (error) {
-      console.error('Error in file handling:', error);
-      addLog(`Error handling file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error processing PDF:', error);
+      addLog(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      message.error('Failed to process PDF. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
