@@ -2,21 +2,6 @@
 
 An AI-powered flashcard generation application that creates study materials from text questions or PDF uploads using OpenAI's GPT models.
 
-## 🚀 Getting Started
-
-### Development
-```bash
-# Install dependencies
-npm install
-
-# Start both client and server in development mode
-npm start
-
-# Or run individually:
-npm run dev     # Client only (Vite dev server)
-npm run server  # Server only (Express with tsx)
-```
-
 
 ## Features
 
