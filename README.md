@@ -1,6 +1,130 @@
-# The GST: AI Flashcard Generator
+# GST Flashcard Generator
 
-A modern flashcard application that uses AI to automatically generate study materials from your questions or PDFs.
+An AI-powered flashcard generation application that creates study materials from text questions or PDF uploads using OpenAI's GPT models.
+
+## 🏗️ Project Structure
+
+```
+thegst/
+├── client/                          # Frontend (React + Vite)
+│   ├── public/                      # Static assets
+│   │   ├── src/
+│   │   │   ├── components/              # React components
+│   │   │   │   ├── ui/                  # Reusable UI components
+│   │   │   │   ├── features/            # Feature-specific components
+│   │   │   │   ├── layout/              # Layout components
+│   │   │   │   └── Auth/                # Authentication components
+│   │   │   ├── api/                     # API client functions
+│   │   │   ├── context/                 # React Context providers
+│   │   │   ├── hooks/                   # Custom React hooks
+│   │   │   ├── services/                # External service clients
+│   │   │   ├── types/                   # Client-side TypeScript types
+│   │   │   ├── utils/                   # Utility functions
+│   │   │   ├── styles/                  # CSS files
+│   │   │   └── assets/                  # Images, fonts, etc.
+│   │   ├── index.html
+│   │   ├── vite.config.ts
+│   │   └── tailwind.config.js
+│   ├── server/                          # Backend (Express + Node.js)
+│   │   ├── src/
+│   │   │   ├── routes/                  # API route handlers
+│   │   │   ├── services/                # Business logic services
+│   │   │   ├── middleware/              # Express middleware
+│   │   │   ├── types/                   # Server-side types
+│   │   │   ├── utils/                   # Server utilities
+│   │   │   └── server.ts                # Main server entry
+│   │   └── tsconfig.json
+│   ├── shared/                          # Shared between client/server
+│   │   └── types/                       # Common type definitions
+│   ├── scripts/                         # Database and build scripts
+│   │   ├── database/                    # DB setup and migration scripts
+│   │   └── build/                       # Build and deployment scripts
+│   └── docs/                           # Documentation
+│       └── AUTHENTICATION_GUIDE.md
+```
+
+## 🚀 Getting Started
+
+### Development
+```bash
+# Install dependencies
+npm install
+
+# Start both client and server in development mode
+npm start
+
+# Or run individually:
+npm run dev     # Client only (Vite dev server)
+npm run server  # Server only (Express with tsx)
+```
+
+### Building for Production
+```bash
+# Build the client
+npm run build
+
+# The built files will be in the dist/ directory
+```
+
+## 🔧 Architecture
+
+### Frontend (Client)
+- **React 19** with TypeScript
+- **Vite** for fast development and building
+- **Ant Design** + **Tailwind CSS** for styling
+- **React Router** for navigation
+- **Context API** for state management
+
+### Backend (Server)
+- **Express.js** with TypeScript
+- **OpenAI API** integration for AI features
+- **PDF processing** for document uploads
+- **Supabase** for authentication and database
+
+### Key Features
+- AI-powered flashcard generation
+- PDF upload and text extraction
+- Multiple OpenAI model support
+- Web search simulation
+- Chat history and collections
+- User authentication
+- Responsive design
+
+## 📂 Component Organization
+
+### UI Components (`client/src/components/ui/`)
+- `LoadingSpinner` - Loading indicators
+- `ErrorMessage` - Error display
+- `Footer` - App footer
+
+### Feature Components (`client/src/components/features/`)
+- `ChatInput` - User question input
+- `FlashcardList` - Display flashcards
+- `PDFUploader` - File upload functionality
+- `ModelSelector` - AI model selection
+- `Flashcard` - Individual flashcard component
+
+### Layout Components (`client/src/components/layout/`)
+- `Sidebar` - Navigation sidebar
+- `UserProfile` - User account management
+
+## 🔄 Data Flow
+
+1. **User Input** → Frontend components
+2. **API Calls** → Express server (`/api/*`)
+3. **AI Processing** → OpenAI API
+4. **Database** → Supabase
+5. **Response** → Frontend state update
+
+## 🛠️ Development Scripts
+
+- `npm start` - Run both client and server
+- `npm run dev` - Client development server
+- `npm run server` - Server development
+- `npm run build` - Build for production
+- `npm run lint` - Lint client code
+- `npm run setup-db` - Setup database
+- `npm run check-db` - Check database connection
 
 ## Features
 
@@ -121,7 +245,9 @@ You can create these tables in your Supabase project using one of the following 
 5. Create a `.env` file in the project root with the following variables:
 ```
 # OpenAI API key for AI-powered flashcards
-VITE_OPENAI_API_KEY=your_openai_api_key_here
+# IMPORTANT: Use OPENAI_API_KEY (without VITE_ prefix) for security!
+# The VITE_ prefix exposes variables to the client bundle.
+OPENAI_API_KEY=your_openai_api_key_here
 
 # Supabase configuration
 VITE_SUPABASE_URL=your_supabase_url_here
@@ -130,6 +256,12 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 # Optional: Port configuration
 PORT=3001
 ```
+
+### 🔐 Important Security Note
+
+**Never use the `VITE_` prefix for API keys or sensitive data!** 
+
+Variables prefixed with `VITE_` are embedded into the client-side JavaScript bundle and become publicly visible. This application has been updated to use `OPENAI_API_KEY` (without prefix) so the API key stays secure on the server side only.
 
 6. Replace `your_supabase_url_here` and `your_supabase_anon_key_here` with the values from your Supabase project settings.
 

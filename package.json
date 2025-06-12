@@ -4,16 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "server": "tsx server.ts",
+    "dev": "cd client && vite",
+    "server": "cd server && tsx src/server.ts",
     "start": "concurrently \"npm run dev\" \"npm run server\"",
-    "build": "tsc -b && vite build",
+    "build": "cd client && tsc -b && vite build",
     "render-build": "npm ci && npm run build",
-    "render-start": "node --experimental-modules server.js",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "check-db": "node --experimental-json-modules scripts/check-db.js",
-    "setup-db": "node scripts/setup-db.js"
+    "render-start": "cd server && node --experimental-modules src/server.js",
+    "lint": "cd client && eslint .",
+    "preview": "cd client && vite preview",
+    "check-db": "node --experimental-json-modules scripts/database/check-db.js",
+    "setup-db": "node scripts/database/setup-db.js"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",

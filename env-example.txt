@@ -1,0 +1,20 @@
+# Environment Variables Example
+# Copy this file to .env and fill in your actual values
+
+# OpenAI API Configuration
+# IMPORTANT: Use OPENAI_API_KEY (without VITE_ prefix) for security
+# The VITE_ prefix exposes variables to the client bundle - NEVER use it for secrets!
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Supabase Configuration
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Optional: Supabase Service Key for database scripts
+# VITE_SUPABASE_SERVICE_KEY=your_supabase_service_key_here
+
+# Server Configuration
+PORT=3001
+
+# Note: Only variables prefixed with VITE_ are accessible in the client-side code
+# All other variables are only available on the server side for security 

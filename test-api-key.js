@@ -4,7 +4,7 @@ import axios from 'axios';
 // Load environment variables
 dotenv.config();
 
-const API_KEY = process.env.VITE_OPENAI_API_KEY;
+const API_KEY = process.env.OPENAI_API_KEY;
 console.log('API Key found:', API_KEY ? 'Yes' : 'No');
 console.log('API Key first 4 chars:', API_KEY?.substring(0, 4));
 
