@@ -2,47 +2,6 @@
 
 An AI-powered flashcard generation application that creates study materials from text questions or PDF uploads using OpenAI's GPT models.
 
-## 🏗️ Project Structure
-
-```
-thegst/
-├── client/                          # Frontend (React + Vite)
-│   ├── public/                      # Static assets
-│   │   ├── src/
-│   │   │   ├── components/              # React components
-│   │   │   │   ├── ui/                  # Reusable UI components
-│   │   │   │   ├── features/            # Feature-specific components
-│   │   │   │   ├── layout/              # Layout components
-│   │   │   │   └── Auth/                # Authentication components
-│   │   │   ├── api/                     # API client functions
-│   │   │   ├── context/                 # React Context providers
-│   │   │   ├── hooks/                   # Custom React hooks
-│   │   │   ├── services/                # External service clients
-│   │   │   ├── types/                   # Client-side TypeScript types
-│   │   │   ├── utils/                   # Utility functions
-│   │   │   ├── styles/                  # CSS files
-│   │   │   └── assets/                  # Images, fonts, etc.
-│   │   ├── index.html
-│   │   ├── vite.config.ts
-│   │   └── tailwind.config.js
-│   ├── server/                          # Backend (Express + Node.js)
-│   │   ├── src/
-│   │   │   ├── routes/                  # API route handlers
-│   │   │   ├── services/                # Business logic services
-│   │   │   ├── middleware/              # Express middleware
-│   │   │   ├── types/                   # Server-side types
-│   │   │   ├── utils/                   # Server utilities
-│   │   │   └── server.ts                # Main server entry
-│   │   └── tsconfig.json
-│   ├── shared/                          # Shared between client/server
-│   │   └── types/                       # Common type definitions
-│   ├── scripts/                         # Database and build scripts
-│   │   ├── database/                    # DB setup and migration scripts
-│   │   └── build/                       # Build and deployment scripts
-│   └── docs/                           # Documentation
-│       └── AUTHENTICATION_GUIDE.md
-```
-
 ## 🚀 Getting Started
 
 ### Development
