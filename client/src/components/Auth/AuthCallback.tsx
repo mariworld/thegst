@@ -14,10 +14,7 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Log the current URL for debugging
-        console.log('Auth callback URL:', window.location.href);
-        console.log('Location search:', location.search);
-        console.log('Location hash:', location.hash);
+
 
         // Check for error in URL parameters first (both query params and hash)
         const urlParams = new URLSearchParams(location.search);
@@ -38,7 +35,7 @@ const AuthCallback = () => {
         const accessToken = hashParams.get('access_token');
         
         if (accessToken) {
-          console.log('Found OAuth tokens in URL, processing...');
+
           
           // Let Supabase handle the OAuth callback
           const { data, error } = await supabase.auth.getSession();
@@ -51,11 +48,11 @@ const AuthCallback = () => {
           }
           
           if (data.session) {
-            console.log('OAuth session established successfully');
+
             navigate('/', { replace: true });
             return;
           } else {
-            console.log('No session found, trying to refresh...');
+
             // Sometimes we need to wait a moment for Supabase to process the tokens
             setTimeout(async () => {
               const { data: retryData } = await supabase.auth.getSession();
@@ -82,11 +79,11 @@ const AuthCallback = () => {
         
         if (data.session) {
           // Successfully authenticated
-          console.log('Authentication successful, redirecting to home');
+
           navigate('/', { replace: true });
         } else {
           // No session found - this might be normal for some OAuth flows
-          console.log('No session found, checking if auth is in progress...');
+          
           
           // Wait a moment and try again (sometimes auth takes a moment)
           setTimeout(async () => {

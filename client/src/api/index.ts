@@ -21,12 +21,7 @@ export const generateFlashcards = async (
   fullAnswer: string;
 }> => {
   try {
-    console.log('Using model:', model);
-    console.log('Web search enabled:', webSearchEnabled);
-    console.log('Previous messages count:', previousMessages.length);
-    
     // Call our server endpoint instead of OpenAI directly
-    console.log('Calling server API for flashcard generation...');
     const response = await axios.post(SERVER_API_URL, {
       question,
       count,
@@ -35,8 +30,6 @@ export const generateFlashcards = async (
       previousMessages
     });
 
-    console.log('Got response from server');
-    
     if (response.data.error) {
       throw new Error(response.data.error);
     }
@@ -49,8 +42,6 @@ export const generateFlashcards = async (
       answer: card.answer,
       id: uuidv4()
     }));
-    
-    console.log(`Generated ${flashcards.length} flashcards`);
     
     return {
       flashcards,
@@ -94,7 +85,7 @@ export const regenerateFlashcards = async (
   model: string = 'gpt-3.5-turbo'
 ): Promise<Flashcard[]> => {
   try {
-    console.log('Regenerating flashcards from existing answer...');
+
     
     // For regeneration, we could either:
     // 1. Call the same endpoint with a special flag
@@ -123,7 +114,7 @@ export const regenerateFlashcards = async (
       id: uuidv4()
     }));
     
-    console.log(`Regenerated ${flashcards.length} flashcards`);
+
     
     return flashcards;
   } catch (error) {

@@ -161,7 +161,7 @@ export const updateChat = async (
 };
 
 export const deleteChat = async (chatId: string): Promise<boolean> => {
-  console.log('Attempting to delete chat with ID:', chatId);
+
   
   // First delete associated flashcards
   const { error: flashcardsError } = await supabase
@@ -174,7 +174,7 @@ export const deleteChat = async (chatId: string): Promise<boolean> => {
     return false;
   }
   
-  console.log('Successfully deleted flashcards for chat:', chatId);
+
   
   // Then delete the chat
   const { data, error } = await supabase
@@ -188,7 +188,7 @@ export const deleteChat = async (chatId: string): Promise<boolean> => {
     return false;
   }
   
-  console.log('Successfully deleted chat from database:', chatId, data);
+
   
   return true;
 };
@@ -431,7 +431,7 @@ export const deleteFlashcard = async (flashcardId: string | number | undefined):
   
   // Check if the ID is likely a non-UUID format (like "card-5")
   if (id.startsWith('card-')) {
-    console.log('Converting non-UUID flashcard ID format to handle deletion');
+  
     
     // Extract the numeric part or identifier after the "card-" prefix
     const idPart = id.substring(5); // "card-".length = 5
@@ -488,7 +488,7 @@ export const deleteFlashcard = async (flashcardId: string | number | undefined):
 };
 
 export const deleteCollection = async (collectionId: string): Promise<boolean> => {
-  console.log('Attempting to delete collection with ID:', collectionId);
+
   
   // First delete associated flashcards
   const { error: flashcardsError } = await supabase
@@ -501,7 +501,7 @@ export const deleteCollection = async (collectionId: string): Promise<boolean> =
     return false;
   }
   
-  console.log('Successfully deleted flashcards for collection:', collectionId);
+
   
   // Then delete the collection
   const { data, error } = await supabase
@@ -515,7 +515,7 @@ export const deleteCollection = async (collectionId: string): Promise<boolean> =
     return false;
   }
   
-  console.log('Successfully deleted collection from database:', collectionId, data);
+
   
   return true;
 }; 

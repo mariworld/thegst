@@ -5,41 +5,22 @@ export class PDFService {
     // Service for PDF text extraction with fallback
   }
 
-  async extractTextFromBase64(base64Data: string): Promise<string> {
-    try {
-      // Validate input
-      if (!base64Data.startsWith('data:application/pdf;base64,')) {
-        throw new Error('PDF data must be in base64 format');
-      }
-      
-      // Extract the base64 data
-      const cleanBase64 = base64Data.replace(/^data:application\/pdf;base64,/, '');
-      const dataBuffer = Buffer.from(cleanBase64, 'base64');
-      
-      return await this.extractTextFromBuffer(dataBuffer);
-    } catch (error) {
-      console.error('Error in base64 PDF extraction:', error);
-      console.log('Using fallback content due to extraction error');
-      return this.getFallbackContent();
-    }
-  }
 
   async extractTextFromBuffer(buffer: Buffer): Promise<string> {
-    console.log('Attempting to extract text from PDF buffer, size:', buffer.length);
     
     try {
       const extractedText = await this.parsePDFWithJson(buffer);
       
       if (extractedText && extractedText.trim().length > 50) {
-        console.log('Successfully extracted text from PDF:', extractedText.length, 'characters');
+
         return extractedText;
       } else {
-        console.log('No meaningful text extracted, using fallback');
+
         return this.getFallbackContent();
       }
     } catch (error) {
       console.error('PDF extraction failed:', error);
-      console.log('Using fallback content due to extraction failure');
+
       return this.getFallbackContent();
     }
   }
@@ -57,7 +38,7 @@ export class PDFService {
       
       pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
         try {
-          console.log('PDF parsed successfully, processing text...');
+
           
           // Extract text from all pages
           if (pdfData.Pages && Array.isArray(pdfData.Pages)) {
@@ -79,7 +60,7 @@ export class PDFService {
             }
           }
           
-          console.log('Text extraction complete, length:', extractedText.length);
+
           resolve(extractedText.trim());
         } catch (processError) {
           console.error('Error processing PDF data:', processError);

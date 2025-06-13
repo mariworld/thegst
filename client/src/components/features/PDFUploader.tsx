@@ -16,7 +16,6 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onPDFContent }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addLog = (message: string) => {
-    console.log('[PDF Uploader]', message);
     setLogs(prev => [...prev.slice(-9), message]); // Keep last 10 logs
   };
 

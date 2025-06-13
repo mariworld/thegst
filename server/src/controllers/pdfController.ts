@@ -9,24 +9,19 @@ export class PDFController {
   }
 
   async extractPDF(req: Request, res: Response): Promise<Response> {
-    console.log('PDF extraction endpoint hit');
     
     try {
       // Check if we have a file uploaded
       const file = (req as any).file;
       if (!file) {
-        console.log('No PDF file found in request');
+
         return res.status(400).json({
           success: false,
           message: 'No PDF file found in request'
         });
       }
 
-      console.log('Received PDF file:', {
-        filename: file.originalname,
-        size: file.size,
-        mimetype: file.mimetype
-      });
+
       
       try {
         const extractedText = await this.pdfService.extractTextFromBuffer(file.buffer);

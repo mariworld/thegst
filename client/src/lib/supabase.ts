@@ -1,9 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
 
-// Debugging: Log the environment variables to verify they are loaded.
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Loaded' : 'Not Loaded');
+// Environment variables are loaded silently
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -27,7 +25,7 @@ export const checkConnection = async () => {
       console.error('Supabase connection error:', error);
       return false;
     }
-    console.log('Supabase connection successful');
+
     return true;
   } catch (err) {
     console.error('Unexpected error checking Supabase connection:', err);
@@ -41,19 +39,14 @@ export const checkAuthStatus = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (user) {
-    console.log('User is authenticated!', { 
-      userId: user.id, 
-      email: user.email,
-      sessionExists: !!session,
-      sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toLocaleString() : 'N/A'
-    });
+
     
     // Test if the auth.uid() matches the user's ID by doing a simple query
     const { error } = await supabase.from('chats').select('count');
     if (error) {
       console.error('RLS test failed:', error);
     } else {
-      console.log('Successfully queried with RLS policy');
+
     }
     
     return true;

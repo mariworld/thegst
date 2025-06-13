@@ -11,7 +11,6 @@ export class ChatController {
   }
 
   async generateFlashcards(req: Request, res: Response): Promise<Response> {
-    console.log('Received request:', req.body);
     
     try {
       const { question, count, model = 'gpt-3.5-turbo', webSearchEnabled = false, previousMessages = [] } = req.body;
@@ -25,7 +24,7 @@ export class ChatController {
         return res.status(400).json({ error: 'Count must be between 1 and 10' });
       }
 
-      console.log(`Model: ${model}, Web search enabled: ${webSearchEnabled}`);
+
 
       try {
         // Step 1: Get full answer from OpenAI
@@ -36,7 +35,7 @@ export class ChatController {
           previousMessages
         );
         
-        console.log('Full answer:', fullAnswer.substring(0, 100) + '...');
+
 
         // Step 2: Generate flashcards from the full answer
         const flashcardsData = await this.openaiService.generateFlashcards(
@@ -53,7 +52,7 @@ export class ChatController {
           id: uuidv4()
         }));
 
-        console.log(`Returning ${flashcardsWithIds.length} flashcards`);
+
         
         // Return both the flashcards and the full answer
         return res.json({
