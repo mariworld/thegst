@@ -177,18 +177,15 @@ export const deleteChat = async (chatId: string): Promise<boolean> => {
 
   
   // Then delete the chat
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('chats')
     .delete()
-    .eq('id', chatId)
-    .select();
+    .eq('id', chatId);
     
   if (error) {
     console.error('Error deleting chat:', error);
     return false;
   }
-  
-
   
   return true;
 };
@@ -504,18 +501,15 @@ export const deleteCollection = async (collectionId: string): Promise<boolean> =
 
   
   // Then delete the collection
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('collections')
     .delete()
-    .eq('id', collectionId)
-    .select();
+    .eq('id', collectionId);
     
   if (error) {
     console.error('Error deleting collection:', error);
     return false;
   }
-  
-
   
   return true;
 }; 

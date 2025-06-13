@@ -36,17 +36,12 @@ export const checkConnection = async () => {
 // Debug function for authentication
 export const checkAuthStatus = async () => {
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: { session } } = await supabase.auth.getSession();
   
   if (user) {
-
-    
     // Test if the auth.uid() matches the user's ID by doing a simple query
     const { error } = await supabase.from('chats').select('count');
     if (error) {
       console.error('RLS test failed:', error);
-    } else {
-
     }
     
     return true;
