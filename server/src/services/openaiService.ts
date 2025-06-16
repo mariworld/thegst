@@ -100,7 +100,7 @@ You MUST respond with ONLY a valid JSON object in the following format:
 The answer is: ${fullAnswer}`
           }
         ],
-        temperature: 0.7,
+        temperature: 0.3,
         max_tokens: 1000
       },
       {
