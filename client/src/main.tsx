@@ -5,6 +5,7 @@ import App from './App.tsx'
 import { ChatProvider } from './context/ChatContext'
 import { AuthProvider } from './context/AuthContext'
 import './styles/index.css'
+import './sentry'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

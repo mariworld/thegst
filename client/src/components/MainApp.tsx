@@ -13,9 +13,11 @@ import {
 import { generateFlashcards, chatMessagesToApiMessages } from '../api'
 import { Layout, Typography, Row, Col, Tabs, Button, Alert, message } from 'antd'
 import { useChat } from '../context/ChatContext'
+import * as Sentry from '@sentry/react';
 
 const { Header, Content, Footer } = Layout
 const { Title, Paragraph } = Typography
+
 
 function MainApp() {
   const [flashcards, setFlashcards] = useState<FlashcardType[]>([])
@@ -286,6 +288,11 @@ PDF content: ${content.substring(0, 1000)}...`
           <Title level={1} style={{ textAlign: 'center', color: 'white', margin: 0, fontSize: '2rem' }}>
             The GST: AI Flashcard Generator
           </Title>
+          {import.meta.env.MODE !== 'production' && (
+            <div style={{ position: 'absolute', right: 16, top: 12 }}>
+              <ErrorButton />
+            </div>
+          )}
         </Header>
 
         <Content className="site-content">
