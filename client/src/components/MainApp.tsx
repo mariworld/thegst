@@ -10,6 +10,7 @@ import {
   Sidebar, 
   UserProfile 
 } from '.'
+import ErrorButton from './ui/ErrorButton'
 import { generateFlashcards, chatMessagesToApiMessages } from '../api'
 import { Layout, Typography, Row, Col, Tabs, Button, Alert, message } from 'antd'
 import { useChat } from '../context/ChatContext'
@@ -480,4 +481,4 @@ PDF content: ${content.substring(0, 1000)}...`
   )
 }
 
-export default MainApp; 
+export default MainApp;  
